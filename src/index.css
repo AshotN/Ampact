@@ -1,6 +1,15 @@
-html{
-  background-color: black;
+.wrapper {
+	background-color: #252527;
+	height: 100%;
 }
-p{
-  color: white;
+
+table {
+	width: 100%;
+	color: white;
+	text-align: center;
+}
+
+td {
+	padding: 20px 0 2px;
+	border-bottom: 1px solid #3C3C3C;
 }
