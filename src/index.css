@@ -1,15 +1,72 @@
+.sidebar{
+	width: 200px;
+	background-color: #2D2D2F;
+	box-shadow: #1f1f1f 2px 2px 4px;
+}
+
+.sidebarTitle{
+  font-size: 24px;
+  text-align: center;
+  color: #03A9F4;
+  margin-top: 5px;
+}
+
+.settings {
+	text-align: center;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+}
+
+.settings .cogWrapper {
+	position: relative;
+	width: 100%;
+	background-color: #616161;
+	padding-top: 5px;
+	transition: background-color 0.2s;
+}
+
+.settings .cogWrapper:hover {
+	background-color: #03A9F4;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+.settings .cogWrapper img {
+	width: 32px;
+}
+
 .wrapper {
 	background-color: #252527;
 	height: 100%;
 }
 
 table {
-	width: 100%;
+	width: 99%;
+	margin: 0 auto;
 	color: white;
 	text-align: center;
+	border-collapse: collapse; 
+}
+th {
+	color: gray;
+	padding-bottom: 5px;
+}
+
+.song {
+	border-bottom: 1px solid #3C3C3C;
+	transition: background-color 0.3s;
+}
+
+.song:first-child {
+	border-top: 1px solid #3C3C3C;
+} 
+
+.song:hover {
+	background-color: #8B8B8C;
+	transition: background-color 0.2s;
 }
 
 td {
-	padding: 20px 0 2px;
-	border-bottom: 1px solid #3C3C3C;
+	padding: 10px 0 10px;
 }
+
