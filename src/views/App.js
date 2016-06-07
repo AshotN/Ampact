@@ -3,26 +3,6 @@ import Sidebar from 'react-sidebar'
 import { Ampache } from '../logic/Ampache'
 import { Howl } from 'howler'
 
-
-// const defaultStyles = {
-//  wrapper: {
-//    backgroundColor: '#252527',
-//    height: '100%'
-//  },
-//  table: {
-//    width: '100%',
-//    color: 'white',
-//    textAlign: 'center',
-//    'td': {
-//      padding: '20px 0'
-//    }
-//  }
-// };
-
-
-
-
-
 module.exports = class App extends Component {
 	constructor (props) {
 		super(props)
@@ -41,31 +21,27 @@ module.exports = class App extends Component {
 		}
 	}
 
-	
-
 	openSettings (e) {
-		console.log("I should really make this");//TODO: Figure this out!
+		console.log('I should really make this');//TODO: Figure this out!
 	}
 
 	connect () {
-		var that = this;
-		this.state.connection = new Ampache("hego555", "vq7map509lz9", "https://login.hego.co/index.php/apps/music/ampache");
-		this.state.connection.handshake((err, result) => {
+		this.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
+		this.connection.handshake((err, result) => {
 			if(err) {
 				//handle error
 			}
 			else {
-				this.state.connection.getSongs((err, songs) => {
-					that.state.songs = [];
-					songs.forEach(function(song) {
+				this.connection.getSongs((err, songs) => {
+					songs.forEach((song) => {
 						console.log(song);
-						var nextState = that.state.songs;
-						nextState.push(song);				
-						that.setState(nextState);		
+						var nextState = this.state.songs;
+						nextState.push(song);
+						this.setState(nextState);
 					});
 				});
 			}
-		});		
+		});
 	}
 
 	playSong (ID, URL) {
@@ -78,8 +54,6 @@ module.exports = class App extends Component {
 			format: ['mp3'],
 			html5: true,
 		});
-		if(this.state.soundHowl != null && this.state.soundHowl.playing()){
-			this.state.soundHowl.stop();
 
 			this.setState({isPlaying: false, isPaused: false, isStopped: true});
 
@@ -116,54 +90,53 @@ module.exports = class App extends Component {
 								 </div>
 
 		const sidebarContent = <div>
-														 <div className='sidebarTitle'>Ampact</div>
-														 <div className='settings'>
-															<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-																<img src='assets/images/settingsCog.png' />   
-															</div>
-														 </div>
-													 </div>;
+      <div className='sidebarTitle'>Ampact</div>
+      <div className='settings'>
+        <div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
+          <img src='assets/images/settingsCog.png' />
+        </div>
+      </div>
+    </div>
 
-		var that = this;
-		let mainContent = 
-											<div className='wrapper' /*style={defaultStyles.wrapper}*/>
-												<table /*style={defaultStyles.table}*/>
-													<thead>
-														<tr>
-															<th>Song</th>
-															<th>Artist</th>
-															<th>Album</th>
-														</tr>
-													</thead>
-													<tbody>
-														{this.state.songs.map(function(object, i){
-															 return <tr onClick={(ID, url) => that.playSong(object.ID, object.URL)} className='song' key={i}>
-																	<td>{object.Title}</td>
-																	<td>{object.Artist}</td>
-																	<td>{object.Album}</td>
-																</tr>
-														})}
-													</tbody>
-												</table>
-												<button onClick={(e) => this.connect(e)}>Connect</button>
-											</div>
-
-							
+		let mainContent = <div className='wrapper'>
+      <table>
+        <thead>
+          <tr>
+            <th>Song</th>
+            <th>Artist</th>
+            <th>Album</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.state.songs.map((object, i) => {
+            return <tr
+              onClick={(ID, url) => this.playSong(object.ID, object.URL)}
+              className='song' key={i}>
+                <td>{object.Title}</td>
+                <td>{object.Artist}</td>
+                <td>{object.Album}</td>
+              </tr>
+          })}
+        </tbody>
+      </table>
+      <button onClick={(e) => this.connect(e)}> Connect </button>
+      </div>
 
 		return (
 			<div>
-				<div className='main'>
-					<Sidebar sidebar={sidebarContent}
-					 open={this.state.sidebarOpen}
-					 docked={this.state.docked}
-					 transitions={this.state.transitions}
-					 sidebarClassName='sidebar'>
-						{mainContent}
-					</Sidebar>
-				</div>
-				{footer}
+			 <div className='main'>
+			  <Sidebar sidebar={sidebarContent}
+			   open={this.state.sidebarOpen}
+			   docked={this.state.docked}
+			   transitions={this.state.transitions}
+			   sidebarClassName='sidebar'>
+		          	{mainContent}
+			  </Sidebar>
+			 </div>
+			{footer}
 			</div>
 
+==== BASE ====
 		);
 	}
 }
