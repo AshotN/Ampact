@@ -45,7 +45,7 @@ table {
 	margin: 0 auto;
 	color: white;
 	text-align: center;
-	border-collapse: collapse; 
+	border-collapse: collapse;
 }
 th {
 	color: gray;
@@ -59,7 +59,7 @@ th {
 
 .song:first-child {
 	border-top: 1px solid #3C3C3C;
-} 
+}
 
 .song:hover {
 	background-color: #8B8B8C;

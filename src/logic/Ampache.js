@@ -6,7 +6,7 @@ const xml2js = require('xml2js')
 
 export class Ampache {
 
-	constructor(username, apikey, server="localhost") {
+	constructor(username, apikey, server='localhost') {
 		this._username = username;
 		this._apikey = apikey;
 		this._server = server;
@@ -31,22 +31,22 @@ export class Ampache {
 
 	set authCode(value) {
 		//Some sort of validation
-		console.log("SET: ",value);
+		console.log('SET: ',value);
 		this._authCode = value;
 	}
 
-	handshake (cb) { 
+	handshake (cb) {
 		var time = Math.round((new Date()).getTime() / 1000);
 		const key = crypto.createHash('sha256').update(this.apikey).digest('hex');
 		const passphrase = crypto.createHash('sha256').update(time + key).digest('hex');
 
-		console.log(key+":"+passphrase);
+		console.log(key+':'+passphrase);
 		var that = this;
 
 		https.get(`${this.server}/server/xml.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, (res) => {
-			res.on("data", function(chunk) {
-				console.log("BODY: " + chunk);
-				xml2js.parseString(chunk, {trim: true}, function (err, result) { 
+			res.on('data', function(chunk) {
+				console.log('BODY: ' + chunk);
+				xml2js.parseString(chunk, {trim: true}, function (err, result) {
 					if(result.root.error != null) {
 						var errorCode = result.root.error[0].$.code;
 						cb(errorCode, null);
@@ -55,7 +55,7 @@ export class Ampache {
 						console.log(result.root.auth[0]);
 						that.authCode = result.root.auth[0];
 						cb(null, result.root.auth[0]);
-					}	
+					}
 				});
 			});
 			res.resume();
@@ -66,9 +66,9 @@ export class Ampache {
 
 	getSongs (cb) {
 		https.get(`${this.server}/server/xml.server.php?action=songs&auth=${this.authCode}`, (res) => {
-			res.on("data", function(chunk) {
-				console.log("BODY: " + chunk);
-				xml2js.parseString(chunk, {trim: true}, function (err, result) { 
+			res.on('data', function(chunk) {
+				console.log('BODY: ' + chunk);
+				xml2js.parseString(chunk, {trim: true}, function (err, result) {
 					if(result.root.error != null) {
 						var errorCode = result.root.error[0].$.code;
 						cb(errorCode, null);
@@ -88,13 +88,12 @@ export class Ampache {
 							});
 						});
 						cb(null, songs);
-					}	
+					}
 				});
 			});
 			res.resume();
 		}).on('error', (e) => {
 			alert(`Error: ${e.message}`);
-		});		
+		});
 	}
-
 }
