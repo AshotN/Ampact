@@ -33,7 +33,11 @@ module.exports = class App extends Component {
 			transitions: false,
 			connection: null,
 			songs: [],
-			soundHowl: null
+			soundHowl: null,
+			isPlaying: false,
+			isPaused: false,
+			isStopped: true,
+			playingId: 0
 		}
 	}
 
@@ -52,6 +56,7 @@ module.exports = class App extends Component {
 			}
 			else {
 				this.state.connection.getSongs((err, songs) => {
+					that.state.songs = [];
 					songs.forEach(function(song) {
 						console.log(song);
 						var nextState = that.state.songs;
@@ -64,6 +69,9 @@ module.exports = class App extends Component {
 	}
 
 	playSong (ID, URL) {
+
+
+
 		console.log(ID, URL);
 		var sound = new Howl({
 			src: [URL],
@@ -72,13 +80,41 @@ module.exports = class App extends Component {
 		});
 		if(this.state.soundHowl != null && this.state.soundHowl.playing()){
 			this.state.soundHowl.stop();
+
+			this.setState({isPlaying: false, isPaused: false, isStopped: true});
+
 		}
+
 		this.state.soundHowl = sound;
-		this.state.soundHowl.play();
+		let id = this.state.soundHowl.play();
+		this.state.playingId = id;
+
+		this.setState({isPlaying: true, isPaused: false, isStopped: false});
+
 
 	}
 
+	playPauseSong (e){
+		if(this.state.isPlaying){
+			this.state.soundHowl.pause(this.state.playingId);
+
+			this.setState({isPlaying: false, isPaused: true, isStopped: false});
+
+		}
+		else if(this.state.isPaused) {
+			let id = this.state.soundHowl.play(this.state.playingId);
+			console.log("resume: "+id);
+			this.setState({isPlaying: true, isPaused: false, isStopped: false});
+		}
+	}
+
 	render () {
+		let footer = <div className='footer'>
+									<div className='playPauseButton'>
+										<div className={this.state.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
+								 	</div>
+								 </div>
+
 		const sidebarContent = <div>
 														 <div className='sidebarTitle'>Ampact</div>
 														 <div className='settings'>
@@ -115,13 +151,18 @@ module.exports = class App extends Component {
 							
 
 		return (
-			<Sidebar sidebar={sidebarContent}
-			 open={this.state.sidebarOpen}
-			 docked={this.state.docked}
-			 transitions={this.state.transitions}
-			 sidebarClassName='sidebar'>
-				{mainContent}
-			</Sidebar>
+			<div>
+				<div className='main'>
+					<Sidebar sidebar={sidebarContent}
+					 open={this.state.sidebarOpen}
+					 docked={this.state.docked}
+					 transitions={this.state.transitions}
+					 sidebarClassName='sidebar'>
+						{mainContent}
+					</Sidebar>
+				</div>
+				{footer}
+			</div>
 
 		);
 	}

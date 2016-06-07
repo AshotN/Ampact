@@ -1,7 +1,21 @@
+.hidden {
+	display: none;
+}
+
+.main {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 70px;
+	overflow: hidden;
+}
+
 .sidebar{
 	width: 200px;
 	background-color: #2D2D2F;
 	box-shadow: #1f1f1f 2px 2px 4px;
+	bottom: 70px;
 }
 
 .sidebarTitle{
@@ -70,3 +84,40 @@ td {
 	padding: 10px 0 10px;
 }
 
+
+.footer{
+	position: absolute;
+	bottom: 0;
+	z-index: 5;
+	width: 100%;
+	background-color: #2d2d2f;
+	height: 70px;
+	left: 0;
+	overflow: hidden;
+}
+
+.footer .playPauseButton {
+	height: 80%;
+	margin-left: 7.5px;
+	margin-top: 7.5px;
+	-webkit-filter: invert(50%);
+	width: 60px;
+}
+
+.footer .playPauseButton div {
+	height: 100%;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.footer .playPauseButton .play {
+	background-image: url(http://image005.flaticon.com/1/svg/142/142457.svg);
+}
+
+.footer .playPauseButton .pause {
+	background-image: url(http://image005.flaticon.com/1/svg/142/142460.svg);
+}
+
+.footer .playPauseButton:hover {
+	-webkit-filter: invert(100%);
+}
