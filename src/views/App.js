@@ -45,9 +45,6 @@ module.exports = class App extends Component {
 	}
 
 	playSong (ID, URL) {
-
-
-
 		console.log(ID, URL);
 		var sound = new Howl({
 			src: [URL],
@@ -55,8 +52,9 @@ module.exports = class App extends Component {
 			html5: true,
 		});
 
+		if(this.state.isPlaying) {
+			this.state.soundHowl.stop();
 			this.setState({isPlaying: false, isPaused: false, isStopped: true});
-
 		}
 
 		this.state.soundHowl = sound;
