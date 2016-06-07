@@ -136,7 +136,6 @@ module.exports = class App extends Component {
 			{footer}
 			</div>
 
-==== BASE ====
 		);
 	}
 }
