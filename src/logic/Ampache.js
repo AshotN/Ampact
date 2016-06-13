@@ -43,86 +43,75 @@ export class Ampache {
 		const passphrase = crypto.createHash('sha256').update(time + key).digest('hex');
 
 		console.log(key+':'+passphrase);
-		var that = this;
 
-		request(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, function (error, response, body) {
+
+		console.log(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`);
+		request(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
-				console.log(body);
-				console.log(JSON.parse(body)); // error!!!
+
+				if(body.charCodeAt(0) == 65279) {
+					var JSONData = JSON.parse(body.slice( 1 ));
+				}
+				else{
+					var JSONData = body;
+				}
+
+				console.log(JSONData);
+
+				if(JSONData.error != null) {
+						var errorCode = JSONData.error.code;
+						console.log(errorCode);
+						return cb(errorCode, null);
+				}
+				else if(JSONData.auth != null){
+					console.log(JSONData.auth);
+					this.authCode = JSONData.auth;
+					return cb(null, JSONData.auth);
+				}
+
 			}
 		});
 
 
-		// https.get(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, (res) => {
-		// 	console.log(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`);
-		// 	var body = '';
-		// 	res.on('data', function(chunk) {
-		// 		body += chunk;
-				
-		// 	});
-		// 	res.on('end', function() {
-		// 		let data = body;
-		// 		console.log(data);
-
-		// 		console.log(JSON.parse(data));
-		// 		console.log('ERROR: ' + data.error);
-
-		// 		this.authCode = chunk.auth;
-		// 		if(chunk.error != null) {
-		// 				var errorCode = chunk.error.code;
-		// 				console.log(errorCode);
-		// 				cb(errorCode, null);
-		// 		}				
-		// 		// xml2js.parseString(chunk, {trim: true}, function (err, result) {
-		// 		// 	if(result.root.error != null) {
-		// 		// 		var errorCode = result.root.error[0].$.code;
-		// 		// 		cb(errorCode, null);
-		// 		// 	}
-		// 		// 	else if(result.root.auth[0] != null){
-		// 		// 		console.log(result.root.auth[0]);
-		// 		// 		that.authCode = result.root.auth[0];
-		// 		// 		cb(null, result.root.auth[0]);
-		// 		// 	}
-		// 		// });
-		// 	});
-		// 	res.resume();
-		// }).on('error', (e) => {
-		// 	alert(`Error: ${e.message}`);
-		// });
+		
 	}
 
 	getSongs (cb) {
-		https.get(`${this.server}/server/xml.server.php?action=songs&auth=${this.authCode}`, (res) => {
-			console.log(`${this.server}/server/xml.server.php?action=songs&auth=${this.authCode}`);
-			res.on('data', function(chunk) {
-				// console.log('BODY: ' + chunk);
-				xml2js.parseString(chunk, {trim: true}, function (err, result) {
-					console.log(err, result);
-					if(result.root.error != null) {
-						var errorCode = result.root.error[0].$.code;
-						cb(errorCode, null);
-					}
-					else {
-						var songs = [];
-						result.root.song.forEach(function(entry) {
-							console.log("URL: ",entry.url[0]);
-							songs.push({
-								ID: entry.$.id,
-								Album: entry.album[0]._,
-								Artist: entry.artist[0]._,
-								Bitrate: entry.bitrate[0],
-								Mime: entry.mime[0],
-								Title: entry.title[0],
-								URL: entry.url[0]
-							});
-						});
-						cb(null, songs);
-					}
+		console.log(`${this.server}/server/json.server.php?action=songs&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=songs&auth=${this.authCode}`, (error, response, body) => {
+			if(body.charCodeAt(0) == 65279) {
+				var JSONData = JSON.parse(body.slice( 1 ));
+			}
+			else{
+				var JSONData = JSON.parse(body);
+			}
+
+			console.log(JSONData);
+			if(JSONData.error != null) {
+				var errorCode = JSONData.error.code;
+				console.log(errorCode);
+				return cb(errorCode, null);
+			}
+			else {
+				let songs = [];
+
+				JSONData.forEach(function(entry) {
+					console.log(entry.song);
+					songs.push({
+						ID: entry.song.id,
+						Album: entry.song.album.name,
+						Artist: entry.song.artist.name,
+						Bitrate: entry.song.bitrate,
+						Mime: entry.song.mime,
+						Title: entry.song.title,
+						URL: entry.song.url
+					});
 				});
-			});
-			res.resume();
-		}).on('error', (e) => {
-			alert(`Error: ${e.message}`);
-		});
-	}
+				cb(null, songs);
+
+			}
+
+
+	});
+}
 }
