@@ -26,7 +26,9 @@ module.exports = class App extends Component {
 	}
 
 	connect () {
-		this.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
+		// this.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
+		this.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
+
 		this.connection.handshake((err, result) => {
 			if(err) {
 				//handle error
