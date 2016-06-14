@@ -61,11 +61,11 @@ class Footer extends Component  {
 
 	render () {
 				return ( 
-					<div className='footer' onMouseUp={this.onMouseUp} onMouseDown={this.onMouseDown} onMouseMove={this.onMouseMove}>
+					<div className='footer' onMouseUp={this.onMouseUp} onMouseMove={this.onMouseMove}>
 						<div className='playPauseButton'>
 							<div className={this.props.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
 						</div>
-						<div  id='volumeControl' className='volumeArea'>
+						<div onMouseDown={this.onMouseDown} id='volumeControl' className='volumeArea'>
 							<span style={{width: (this.state.volumeBarPos*100)+'%'}} className='volumeBar'></span>
 						</div>
 					</div>
