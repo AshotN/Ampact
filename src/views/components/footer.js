@@ -28,6 +28,18 @@ class Footer extends Component  {
 		}		
 	}
 
+	previousSong (e) {
+		if (typeof this.props.onPreviousSong === 'function') {
+			this.props.onPreviousSong();
+		}		
+	}
+
+	nextSong (e) {
+		if (typeof this.props.onNextSong === 'function') {
+			this.props.onNextSong();
+		}		
+	}
+
 	getVolumePosition (e) {
 		let volume = ((((e.clientX - document.getElementById('volumeControl').offsetLeft) / document.getElementById('volumeControl').offsetWidth)).toFixed(2));
 		if(volume > 1) {
@@ -62,8 +74,14 @@ class Footer extends Component  {
 	render () {
 				return ( 
 					<div className='footer' onMouseUp={this.onMouseUp} onMouseMove={this.onMouseMove}>
+						<div className='previousSong'>
+							<div onClick={(e) => this.previousSong(e)} />
+						</div>					
 						<div className='playPauseButton'>
 							<div className={this.props.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
+						</div>
+						<div className='nextSong'>
+							<div onClick={(e) => this.nextSong(e)} />
 						</div>
 						<div onMouseDown={this.onMouseDown} id='volumeControl' className='volumeArea'>
 							<span style={{width: (this.state.volumeBarPos*100)+'%'}} className='volumeBar'></span>

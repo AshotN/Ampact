@@ -19,11 +19,16 @@ module.exports = class App extends Component {
 			isPaused: false,
 			isStopped: true,
 			playingId: 0,
+			playingIndex: 0,
 			volume: 0.5
 		}
 
 		this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
 		this.playPauseSong = this.playPauseSong.bind(this);
+		this.songIsOver = this.songIsOver.bind(this);
+		this.playPreviousSong = this.playPreviousSong.bind(this);
+
+
 		this.connect();
 	}
 
@@ -52,13 +57,42 @@ module.exports = class App extends Component {
 		});
 	}
 
-	playSong (ID, URL) {
-		console.log(ID, URL);
+	songIsOver (e) {
+		//Play the next song by order
+		this.playSongByPlayingIndex(this.state.playingIndex+1);
+	}
+
+	playPreviousSong () {
+		//Play the previous song by order
+		this.playSongByPlayingIndex(this.state.playingIndex-1);
+	}
+
+	stopPlaying(){
+		if(this.state.isStopped == false) {
+			this.state.soundHowl.stop();
+			this.setState({isPlaying: false, isPaused: false, isStopped: true, playingId: 0});				
+		}
+	}
+
+	//**** you Javascript and your lack of overloading!
+	playSongByPlayingIndex (playingIndex) {
+		console.log("Play: "+playingIndex);
+		let ourNewSong = this.state.songs[playingIndex];
+		if(ourNewSong === undefined) {
+			return this.stopPlaying();
+		}
+		this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
+	}
+
+	playSong (ID, URL, playingIndex) {
+		console.log(playingIndex, URL);
 		var sound = new Howl({
 			src: [URL],
 			format: ['mp3'],
 			html5: true,
-			volume: this.state.volume
+			volume: this.state.volume,
+			onend: (e) => { this.songIsOver(e); },
+			onplay: (e) => { console.log('play');}
 		});
 
 		if(this.state.isPlaying) {
@@ -68,12 +102,12 @@ module.exports = class App extends Component {
 
 		this.state.soundHowl = sound;
 		let id = this.state.soundHowl.play();
-		this.state.playingId = id;
 
-		this.setState({isPlaying: true, isPaused: false, isStopped: false});
+		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingId: id, playingIndex: playingIndex});
 	}
 
-	playPauseSong (e){
+
+	playPauseSong (e) {
 		if(this.state.isPlaying){
 			this.state.soundHowl.pause(this.state.playingId);
 
@@ -87,6 +121,7 @@ module.exports = class App extends Component {
 			this.setState({isPlaying: true, isPaused: false, isStopped: false});
 		}
 	}
+
 	 
 	volumeBarChangeEvent (value) {
 		console.log("Recieved Volume: "+value);
@@ -98,15 +133,6 @@ module.exports = class App extends Component {
 	}
 
 	render () {
-		// let footer = <div className='footer'>
-		// 							<div className='playPauseButton'>
-		// 								<div className={this.state.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
-		// 						 	</div>
-		// 						 	<div className='volumeArea'>
-		// 						 		<span className='volumeBar'></span>
-		// 						 	</div>
-		// 						 </div>
-
 		const sidebarContent = <div>
 			<div className='sidebarTitle'>Ampact</div>
 			<div className='settings'>
@@ -128,7 +154,7 @@ module.exports = class App extends Component {
 				<tbody>
 					{this.state.songs.map((object, i) => {
 						return <tr
-							onClick={(ID, url) => this.playSong(object.ID, object.URL)}
+							onClick={(ID, url, playingIndex) => this.playSong(object.ID, object.URL, i)}
 							className='song' key={i}>
 								<td>{object.Title}</td>
 								<td>{object.Artist}</td>
@@ -150,7 +176,7 @@ module.exports = class App extends Component {
 					{mainContent}
 				</Sidebar>
 			 </div>
-			<Footer onPlayPauseSong={this.playPauseSong} onChange={this.volumeBarChangeEvent} isPlaying={this.state.isPlaying} />
+			<Footer onPlayPauseSong={this.playPauseSong} onPreviousSong={this.playPreviousSong} onNextSong={this.songIsOver} onChange={this.volumeBarChangeEvent} isPlaying={this.state.isPlaying} />
 			</div>
 
 		);

@@ -11,29 +11,54 @@
 
 	.playPauseButton 
 		height: 80%;
-		margin-left: 7.5px;
 		margin-top: 7.5px;
-		-webkit-filter: invert(50%);
+		// -webkit-filter: invert(50%);
 		width: 60px;
 		display: inline-block;
-
+		-webkit-filter: grayscale(100%);
+		transition: -webkit-filter 0.2s
 
 		div 
 			height: 100%;
 			background-repeat: no-repeat;
 			background-position: center;
 
-
+		//Icons made by "http://www.freepik.com" and is licensed by CC 3.0
 		.play 
-			background-image: url(http://image005.flaticon.com/1/svg/142/142457.svg);
+			background-image: url('assets/images/playIcon.png');
+			background-size: 90%;
 
+		//Icons made by "http://www.freepik.com" and is licensed by CC 3.0
 		.pause 
-			background-image: url(http://image005.flaticon.com/1/svg/142/142460.svg);
-		
+			background-image: url('assets/images/pauseIcon.png');
+			background-size: 90%;
 
 		&:hover 
-			-webkit-filter: invert(100%);
+			-webkit-filter: grayscale(0%);
 
+	.nextSong, .previousSong
+		height: 80%;
+		margin-top: 7.5px;
+		// -webkit-filter: invert(50%);
+		width: 20px;
+		display: inline-block;
+		-webkit-filter: grayscale(100%);
+		transition: -webkit-filter 0.2s
+		div
+			height: 100%;
+			background-repeat: no-repeat;
+			background-position: center;
+			//Icons made by "http://www.freepik.com" and is licensed by CC 3.0
+			background-image: url('assets/images/nextIcon.png');
+			background-size: 100%;
+
+
+		&:hover 
+			-webkit-filter: grayscale(0%);
+	
+	.previousSong
+		margin-left 10px
+		transform: rotateY(180deg)
 
 	.volumeArea 
 		position: relative;
