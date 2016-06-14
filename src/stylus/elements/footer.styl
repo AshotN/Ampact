@@ -1,0 +1,53 @@
+.footer
+	position: absolute;
+	bottom: 0;
+	z-index: 5;
+	width: 100%;
+	background-color: #2d2d2f;
+	height: 70px;
+	left: 0;
+	overflow: hidden;
+
+
+	.playPauseButton 
+		height: 80%;
+		margin-left: 7.5px;
+		margin-top: 7.5px;
+		-webkit-filter: invert(50%);
+		width: 60px;
+		display: inline-block;
+
+
+		div 
+			height: 100%;
+			background-repeat: no-repeat;
+			background-position: center;
+
+
+		.play 
+			background-image: url(http://image005.flaticon.com/1/svg/142/142457.svg);
+
+		.pause 
+			background-image: url(http://image005.flaticon.com/1/svg/142/142460.svg);
+		
+
+		&:hover 
+			-webkit-filter: invert(100%);
+
+
+	.volumeArea 
+		position: relative;
+		cursor: pointer;
+		width: 30%;
+		right: 10px;
+		top: 25px;
+		float: right;
+		background-color: black;
+		height: 20px;
+
+	.volumeBar 
+		display:block;
+		height:20px;
+		background-color:#03a9f4;
+		z-index:10;
+		width: 90%;

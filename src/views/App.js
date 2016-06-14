@@ -2,6 +2,7 @@ import { Component } from 'react'
 import Sidebar from 'react-sidebar'
 import { Ampache } from '../logic/Ampache'
 import { Howl } from 'howler'
+import Footer from './components/footer'
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -17,8 +18,13 @@ module.exports = class App extends Component {
 			isPlaying: false,
 			isPaused: false,
 			isStopped: true,
-			playingId: 0
+			playingId: 0,
+			volume: 0.5
 		}
+
+		this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
+		this.playPauseSong = this.playPauseSong.bind(this);
+		this.connect();
 	}
 
 	openSettings (e) {
@@ -52,6 +58,7 @@ module.exports = class App extends Component {
 			src: [URL],
 			format: ['mp3'],
 			html5: true,
+			volume: this.state.volume
 		});
 
 		if(this.state.isPlaying) {
@@ -64,8 +71,6 @@ module.exports = class App extends Component {
 		this.state.playingId = id;
 
 		this.setState({isPlaying: true, isPaused: false, isStopped: false});
-
-
 	}
 
 	playPauseSong (e){
@@ -76,64 +81,76 @@ module.exports = class App extends Component {
 
 		}
 		else if(this.state.isPaused) {
+			this.state.soundHowl.volume(this.state.volume);
 			let id = this.state.soundHowl.play(this.state.playingId);
 			console.log("resume: "+id);
 			this.setState({isPlaying: true, isPaused: false, isStopped: false});
 		}
 	}
+	 
+	volumeBarChangeEvent (value) {
+		console.log("Recieved Volume: "+value);
+		this.setState({volume: value});
+		if(this.state.isPlaying) {
+			this.state.soundHowl.volume(value);
+		}
+		// Howl.volume(value);
+	}
 
 	render () {
-		let footer = <div className='footer'>
-									<div className='playPauseButton'>
-										<div className={this.state.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
-								 	</div>
-								 </div>
+		// let footer = <div className='footer'>
+		// 							<div className='playPauseButton'>
+		// 								<div className={this.state.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)} />
+		// 						 	</div>
+		// 						 	<div className='volumeArea'>
+		// 						 		<span className='volumeBar'></span>
+		// 						 	</div>
+		// 						 </div>
 
 		const sidebarContent = <div>
-      <div className='sidebarTitle'>Ampact</div>
-      <div className='settings'>
-        <div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-          <img src='assets/images/settingsCog.png' />
-        </div>
-      </div>
-    </div>
+			<div className='sidebarTitle'>Ampact</div>
+			<div className='settings'>
+				<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
+					<img src='assets/images/settingsCog.png' />
+				</div>
+			</div>
+		</div>
 
 		let mainContent = <div className='wrapper'>
-      <table>
-        <thead>
-          <tr>
-            <th>Song</th>
-            <th>Artist</th>
-            <th>Album</th>
-          </tr>
-        </thead>
-        <tbody>
-          {this.state.songs.map((object, i) => {
-            return <tr
-              onClick={(ID, url) => this.playSong(object.ID, object.URL)}
-              className='song' key={i}>
-                <td>{object.Title}</td>
-                <td>{object.Artist}</td>
-                <td>{object.Album}</td>
-              </tr>
-          })}
-        </tbody>
-      </table>
-      <button onClick={(e) => this.connect(e)}> Connect </button>
-      </div>
+			<table>
+				<thead>
+					<tr>
+						<th>Song</th>
+						<th>Artist</th>
+						<th>Album</th>
+					</tr>
+				</thead>
+				<tbody>
+					{this.state.songs.map((object, i) => {
+						return <tr
+							onClick={(ID, url) => this.playSong(object.ID, object.URL)}
+							className='song' key={i}>
+								<td>{object.Title}</td>
+								<td>{object.Artist}</td>
+								<td>{object.Album}</td>
+							</tr>
+					})}
+				</tbody>
+			</table>
+			</div>
 
 		return (
 			<div>
 			 <div className='main'>
-			  <Sidebar sidebar={sidebarContent}
-			   open={this.state.sidebarOpen}
-			   docked={this.state.docked}
-			   transitions={this.state.transitions}
-			   sidebarClassName='sidebar'>
-		          	{mainContent}
-			  </Sidebar>
+				<Sidebar sidebar={sidebarContent}
+				 open={this.state.sidebarOpen}
+				 docked={this.state.docked}
+				 transitions={this.state.transitions}
+				 sidebarClassName='sidebar'>
+					{mainContent}
+				</Sidebar>
 			 </div>
-			{footer}
+			<Footer onPlayPauseSong={this.playPauseSong} onChange={this.volumeBarChangeEvent} isPlaying={this.state.isPlaying} />
 			</div>
 
 		);

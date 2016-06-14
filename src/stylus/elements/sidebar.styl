@@ -1,0 +1,43 @@
+.sidebar
+	width: 200px
+	background-color: #2D2D2F
+	box-shadow: #1f1f1f 2px 2px 4px
+	bottom: 70px
+
+	.sidebarTitle
+		font-size: 24px
+		text-align: center
+		color: #03A9F4
+		margin-top: 5px
+
+	.settings 
+		text-align: center
+		width: 100%
+		position: absolute
+		bottom: 0
+		.cogWrapper 
+			position: relative
+			width: 100%
+			background-color: #616161
+			padding-top: 5px
+			transition: background-color 0.2s
+
+			&:hover 
+				background-color: #03A9F4
+				cursor: pointer
+				transition: background-color 0.2s
+				img
+					animation spin1 3s infinite linear
+					transform-origin 50% 50%
+					width 32px
+					height 32px
+			
+@keyframes spin1
+	0% {
+		transform rotate(0deg)
+	}
+
+	100% {
+		transform rotate(360deg)
+	}
+
