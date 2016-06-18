@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const https = require('https');
 const xml2js = require('xml2js')
 const request = require('request');
+import { Song } from './Song'
+
 
 export class Ampache {
 
@@ -49,19 +51,14 @@ export class Ampache {
 		request(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 
-				if(body.charCodeAt(0) == 65279) {
-					var JSONData = JSON.parse(body.slice( 1 ));
-				}
-				else{
-					var JSONData = body;
-				}
+				var JSONData = JSON.parse(body);
 
 				console.log(JSONData);
 
 				if(JSONData.error != null) {
-						var errorCode = JSONData.error.code;
-						console.log(errorCode);
-						return cb(errorCode, null);
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
 				}
 				else if(JSONData.auth != null){
 					console.log(JSONData.auth);
@@ -79,39 +76,80 @@ export class Ampache {
 	getSongs (cb) {
 		console.log(`${this.server}/server/json.server.php?action=songs&auth=${this.authCode}`);
 		request(`${this.server}/server/json.server.php?action=songs&auth=${this.authCode}`, (error, response, body) => {
-			if(body.charCodeAt(0) == 65279) {
-				var JSONData = JSON.parse(body.slice( 1 ));
-			}
-			else{
+			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-			}
 
-			console.log(JSONData);
-			if(JSONData.error != null) {
-				var errorCode = JSONData.error.code;
-				console.log(errorCode);
-				return cb(errorCode, null);
-			}
-			else {
-				let songs = [];
+				console.log(JSONData);
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+					let songs = [];
 
-				JSONData.forEach(function(entry) {
-					console.log(entry.song);
-					songs.push({
-						ID: entry.song.id,
-						Album: entry.song.album.name,
-						Artist: entry.song.artist.name,
-						Bitrate: entry.song.bitrate,
-						Mime: entry.song.mime,
-						Title: entry.song.title,
-						URL: entry.song.url
+					JSONData.forEach(function(entry) {
+						// console.log(entry.song);
+						let song = new Song(entry.song);
+						songs.push(song);
 					});
-				});
-				cb(null, songs);
+					cb(null, songs);
 
+				}
+			}
+		});
+	}
+
+	getSong (AmpacheID, cb) {
+		console.log(AmpacheID, `${this.server}/server/json.server.php?action=song&filter=${AmpacheID}&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=song&filter=${AmpacheID}&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+				
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+
+					console.log(JSONData[0].song);
+					let song = new Song(JSONData[0].song);
+
+					cb(null, song);
+
+				}
 			}
 
+		});
 
-	});
-}
+	}
+
+	getPlaylistSongs (playListID, cb) {
+		console.log(playListID, `${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+				
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+
+					let songs = [];
+
+					JSONData.forEach(function(entry) {
+						// console.log(entry.song);
+						let song = new Song(entry.song);
+						songs.push(song);
+					});
+					cb(null, songs);
+
+				}
+			}
+
+		});		
+	}
 }
