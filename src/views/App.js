@@ -18,6 +18,7 @@ module.exports = class App extends Component {
 			connection: null,
 			renderSongs: [],
 			playlists: [],
+			allSongs: [],
 			soundHowl: null,
 			isPlaying: false,
 			isPaused: false,
@@ -51,35 +52,68 @@ module.exports = class App extends Component {
 			}
 			else {
 				this.state.connection.getSongs((err, songs) => {
-					let allSongs = [];
+					let theSongs = []; //Please make a better variable name...
 					songs.forEach((song) => {
 						console.log(song);
-						allSongs[song.ID] = song;
+						theSongs[song.ID] = song;
 					});
-					this.setState({renderSongs: allSongs});
 
-					this.state.connection.getPlaylistSongs(1, (err, songs) => {
-						
-						let allFavSongs = [];
-						songs.forEach((song) => {
-							console.log(song);
-							song.Favorite = true;
-							allSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
-							allFavSongs[song.ID] = allSongs[song.ID];
+					this.setState({allSongs: theSongs}, () => {
+						this.generateFavorits((cb) => {
+							console.log(cb);
+							this.setState({renderSongs: this.state.allSongs});
 						});
-
-						let newPlaylists = this.state.playlists;    
-						newPlaylists['home'] = allSongs;
-						newPlaylists['favorites'] = allFavSongs;
-						this.setState({playlists: newPlaylists}, () => {
-							this.markAllFavorites();
-						});					
 					});
 
 
 				});
 			}
 		});
+	}
+
+	generateFavorits (cb) {
+		this.state.connection.getPlaylistSongs(1, (err, songs) => {
+
+
+			this.setState({playlists: newPlaylists});
+
+			let allFavSongs = [];
+			let updateAllSongs = this.state.allSongs;
+
+			songs.forEach((song) => {
+				console.log(song);
+				updateAllSongs[song.ID].Favorite = true;
+				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
+				allFavSongs.push(song.ID);
+			});
+
+			let newPlaylists = this.state.playlists || []; 
+			console.log("B", newPlaylists);   
+			newPlaylists['favorites'] = allFavSongs;
+
+			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
+				cb();
+			});
+		});
+	}
+
+	renderPlaylist (AmpacheIDs, cb) {
+		let renderReady = []; // Again needs a better variable name
+		AmpacheIDs.forEach((id) => {
+			renderReady.push(this.state.allSongs[id]);
+		});
+		cb(null, renderReady);
+	}
+
+	renderFavPlaylist (cb) {
+		let renderReady = []; // Again needs a better variable name
+		let allSongs = this.state.allSongs;
+		allSongs.forEach((song) => {
+			if(song.Favorite) {
+				renderReady.push(song);
+			}
+		});
+		cb(null, renderReady);
 	}
 
 	songIsOver (e) {
@@ -148,11 +182,21 @@ module.exports = class App extends Component {
 		e.preventDefault(); // Let's stop this event.
 		e.stopPropagation(); // Really this time.
 
-		if(this.state.playlists['home'][AmpacheSongId].Favorite == false) {
+		if(this.state.allSongs[AmpacheSongId].Favorite == false) {
+			let newAllSongs = this.state.allSongs;
+
 			this.addSongToFavoriteByAmpacheSongId(AmpacheSongId);
+			newAllSongs[AmpacheSongId].Favorite = true;
+
+			this.setState({allSongs: newAllSongs});
 		}
 		else{
-			this.removeSongFromFavorite(this.state.playlists['home'][AmpacheSongId].PlaylistTrackNumber);
+			let newAllSongs = this.state.allSongs;
+
+			this.removeSongFromFavorite(this.state.allSongs[AmpacheSongId].PlaylistTrackNumber);
+			newAllSongs[AmpacheSongId].Favorite = false;
+
+			this.setState({allSongs: newAllSongs});
 		}
 
 	}
@@ -207,13 +251,14 @@ module.exports = class App extends Component {
 
 	home () {
 		console.log(this.state.playlists);
-		this.setState({renderSongs: this.state.playlists['home']});
+		this.setState({renderSongs: this.state.allSongs});
 	}
 
 	playlist () {
-		 // this.getFavoritePlaylist(() => {
-			this.setState({renderSongs: this.state.playlists['favorites']});
-		 // });
+		this.renderFavPlaylist((err, renderOut) => {
+			console.log(renderOut);
+			this.setState({renderSongs: renderOut});
+		});
 	}
 
 	render () {
