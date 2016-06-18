@@ -15,6 +15,8 @@ export class Song {
 		this._MIME = songArray.mime;
 		this._Bitrate = songArray.bitrate;
 		this._URL = songArray.url;
+		this._Favorite = false;
+		this._PlaylistTrackNumber = -1;
 	}
 
 	get ID () {
@@ -43,6 +45,22 @@ export class Song {
 
 	get URL () {
 		return this._URL;
+	}
+
+	get Favorite () {
+		return this._Favorite;
+	}
+
+	set Favorite (value) {
+		this._Favorite = value;
+	}
+
+	get PlaylistTrackNumber () {
+		return this._PlaylistTrackNumber;
+	}
+
+	set PlaylistTrackNumber (value) {
+		this._PlaylistTrackNumber = value;
 	}
 
 }

@@ -143,6 +143,7 @@ export class Ampache {
 					JSONData.forEach(function(entry) {
 						// console.log(entry.song);
 						let song = new Song(entry.song);
+						song.PlaylistTrackNumber = entry.song.playlisttrack;
 						songs.push(song);
 					});
 					cb(null, songs);
@@ -152,4 +153,49 @@ export class Ampache {
 
 		});		
 	}
+
+	addSongToPlaylist (playListID, AmpacheSongID, cb) {
+		console.log(playListID, `${this.server}/server/json.server.php?action=playlist_add_song&filter=${playListID}&song=${AmpacheSongID}&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=playlist_add_song&filter=${playListID}&song=${AmpacheSongID}&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+				
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+
+					console.log(JSONData);
+					cb(null, "Good");
+
+				}
+			}
+
+		});		
+	}
+
+	removeSongFromPlaylist (playListID, PlaylistTrackNumber, cb) {
+		console.log(playListID, `${this.server}/server/json.server.php?action=playlist_remove_song&filter=${playListID}&track=${PlaylistTrackNumber}&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=playlist_remove_song&filter=${playListID}&track=${PlaylistTrackNumber}&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+				
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+
+					console.log(JSONData);
+					cb(null, "Good");
+
+				}
+			}
+
+		});		
+	}
+
 }

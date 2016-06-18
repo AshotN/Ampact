@@ -23,7 +23,7 @@ module.exports = class App extends Component {
 			isPaused: false,
 			isStopped: true,
 			playingHowlID: -1,
-			playingAmpacheID: -1,
+			playingAmpacheSongId: -1,
 			playingIndex: -1,
 			volume: 0.5
 		}
@@ -54,13 +54,28 @@ module.exports = class App extends Component {
 					let allSongs = [];
 					songs.forEach((song) => {
 						console.log(song);
-						allSongs.push(song);
+						allSongs[song.ID] = song;
 					});
 					this.setState({renderSongs: allSongs});
 
-					let newPlaylists = this.state.playlists.slice();    
-					newPlaylists['home'] = allSongs;
-					this.setState({playlists: newPlaylists});					
+					this.state.connection.getPlaylistSongs(1, (err, songs) => {
+						
+						let allFavSongs = [];
+						songs.forEach((song) => {
+							console.log(song);
+							song.Favorite = true;
+							allSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
+							allFavSongs[song.ID] = allSongs[song.ID];
+						});
+
+						let newPlaylists = this.state.playlists;    
+						newPlaylists['home'] = allSongs;
+						newPlaylists['favorites'] = allFavSongs;
+						this.setState({playlists: newPlaylists}, () => {
+							this.markAllFavorites();
+						});					
+					});
+
 
 				});
 			}
@@ -80,7 +95,7 @@ module.exports = class App extends Component {
 	stopPlaying(){
 		if(this.state.isStopped == false) {
 			this.state.soundHowl.stop();
-			this.setState({isPlaying: false, isPaused: false, isStopped: true, playingHowlID: -1, playingIndex: -1, playingAmpacheID: -1});				
+			this.setState({isPlaying: false, isPaused: false, isStopped: true, playingHowlID: -1, playingIndex: -1, playingAmpacheSongId: -1});				
 		}
 	}
 
@@ -94,41 +109,55 @@ module.exports = class App extends Component {
 		this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
 	}
 
-	getFavoritePlaylist (cb) {
+	checkIfFavoriteByAmpacheSongId (AmpacheSongID) {
+		this.playlist['favorites'].forEach((song) => {
+			if(song.ID == AmpacheSongID){
+				return true;
+			}
+		});
+		return false;
+	}
+
+	markAllFavorites () {
 		this.state.connection.getPlaylistSongs(1, (err, songs) => {
-			let allSongs = [];
+
+			let newPlaylists = this.state.playlists;   
 			songs.forEach((song) => {
-				console.log(song);
-				allSongs.push(song);
+				console.log("A", song);
+				newPlaylists['home'][song.ID].Favorite = true;
 			});
-
-			let newPlaylists = this.state.playlists;    
-			newPlaylists['favorites'] = allSongs;
-			this.setState({playlists: newPlaylists}, (err, done) => {
-				console.log(err, done);
-				cb();
-			});		
-		});
-	}
-
-	addSongToFavoriteByAmpacheID (AmpacheID) {
-		this.state.connection.getSong(AmpacheID, (err, song) => {
-			let newPlaylists = this.state.playlists;
-			newPlaylists['favorites'].push(song);
+ 
 			this.setState({playlists: newPlaylists});
+		});		
+	}
+
+	addSongToFavoriteByAmpacheSongId (AmpacheSongId) {
+		this.state.connection.addSongToPlaylist(1, AmpacheSongId, (err, cb) => {
+			console.log(cb);
 		});
 	}
 
-	favSong (e, AmpacheID) {
-		console.log("Favorite Song", AmpacheID);
+	removeSongFromFavorite (TrackNumber) {
+		this.state.connection.removeSongFromPlaylist(1, TrackNumber, (err, cb) => {
+			console.log(cb);
+		});
+	}
+
+	favSong (e, AmpacheSongId) {
+		console.log("Favorite Song", AmpacheSongId);
 		e.preventDefault(); // Let's stop this event.
 		e.stopPropagation(); // Really this time.
 
-		this.addSongToFavoriteByAmpacheID(AmpacheID);
+		if(this.state.playlists['home'][AmpacheSongId].Favorite == false) {
+			this.addSongToFavoriteByAmpacheSongId(AmpacheSongId);
+		}
+		else{
+			this.removeSongFromFavorite(this.state.playlists['home'][AmpacheSongId].PlaylistTrackNumber);
+		}
 
 	}
 
-	playSong (AmpacheID, URL, playingIndex) {
+	playSong (AmpacheSongId, URL, playingIndex) {
 		console.log(playingIndex, URL);
 		var sound = new Howl({
 			src: [URL],
@@ -147,7 +176,7 @@ module.exports = class App extends Component {
 		this.state.soundHowl = sound;
 		let howlID = this.state.soundHowl.play();
 
-		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingHowlID: howlID, playingIndex: playingIndex, playingAmpacheID: AmpacheID});
+		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingHowlID: howlID, playingIndex: playingIndex, playingAmpacheSongId: AmpacheSongId});
 	}
 
 
@@ -182,9 +211,9 @@ module.exports = class App extends Component {
 	}
 
 	playlist () {
-		this.getFavoritePlaylist(() => {
+		 // this.getFavoritePlaylist(() => {
 			this.setState({renderSongs: this.state.playlists['favorites']});
-		});
+		 // });
 	}
 
 	render () {
@@ -212,11 +241,12 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
-						let classes = classNames('song', {'playingNow': object.ID === this.state.playingAmpacheID});
+						let songClasses = classNames('song', {'playingNow': object.ID === this.state.playingAmpacheSongId});
+						let favoriteIconClasses = classNames('favSong', {'favorited': object.Favorite});
 						return (
-							<div onClick={(AmpacheID, url, playingIndex) => this.playSong(object.ID, object.URL, i)}
-								className={classes} key={i}>
-									<div className='favSong' onClick={(e, AmpacheID) => this.favSong(e, object.ID)}></div>
+							<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(object.ID, object.URL, i)}
+								className={songClasses} key={i}>
+									<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, object.ID)}></div>
 									<div>{object.Title}</div>
 									<div>{object.Artist}</div>
 									<div>{object.Album}</div>
