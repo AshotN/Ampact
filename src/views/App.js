@@ -2,6 +2,7 @@ import { Component } from 'react'
 import Sidebar from 'react-sidebar'
 import { Ampache } from '../logic/Ampache'
 import { Song } from '../logic/Song'
+import { Playlist } from '../logic/Playlist'
 import { Howl } from 'howler'
 import Footer from './components/footer'
 import classNames from 'classnames';
@@ -59,48 +60,77 @@ module.exports = class App extends Component {
 					});
 
 					this.setState({allSongs: theSongs}, () => {
+						console.log("AAYYYY");
 						this.generateFavorits((cb) => {
-							console.log(cb);
-							this.setState({renderSongs: this.state.allSongs});
+							console.log("OHHHHHH");
+							this.setState({renderSongs: theSongs});
 						});
 					});
-
-
 				});
+				this.loadAllPlaylists();
 			}
 		});
+	}
+
+	loadAllPlaylists () {
+		console.log("load");
+		this.state.connection.getAllPlaylists((err, playlists) => {
+			console.log(err, playlists);
+			let newPlaylists = this.state.playlists;
+			playlists.forEach((playlist) => {
+				console.log(playlist);
+				newPlaylists[playlist.Name] = playlist;
+			});
+			console.log(newPlaylists);
+			this.setState({playlists: newPlaylists});
+		});
+	}
+
+	generatePlaylist (ampachePlaylistID, playlistName, cb) {
+		this.state.connection.getPlaylistSongs(ampachePlaylistID, (err, songs) => {
+
+			let updateAllSongs = this.state.allSongs;
+			let newPlaylists = this.state.playlists || []; 
+
+			songs.forEach((song) => {
+				console.log(song);
+				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
+
+				newPlaylists[playlistName].pushSingleSongID(song.ID);
+			});
+
+
+			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
+				cb();
+			});
+		});		
 	}
 
 	generateFavorits (cb) {
 		this.state.connection.getPlaylistSongs(1, (err, songs) => {
 
-
-			this.setState({playlists: newPlaylists});
-
-			let allFavSongs = [];
 			let updateAllSongs = this.state.allSongs;
 
 			songs.forEach((song) => {
 				console.log(song);
 				updateAllSongs[song.ID].Favorite = true;
 				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
-				allFavSongs.push(song.ID);
+
 			});
 
 			let newPlaylists = this.state.playlists || []; 
-			console.log("B", newPlaylists);   
-			newPlaylists['favorites'] = allFavSongs;
 
-			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
+			this.setState({allSongs: updateAllSongs}, () => {
 				cb();
 			});
 		});
 	}
 
-	renderPlaylist (AmpacheIDs, cb) {
+	renderPlaylist (PlaylistName, cb) {
 		let renderReady = []; // Again needs a better variable name
-		AmpacheIDs.forEach((id) => {
-			renderReady.push(this.state.allSongs[id]);
+		this.state.playlists[PlaylistName].Songs.forEach((song) => {
+			console.log(song);
+			renderReady.push(this.state.allSongs[song.ID]);
 		});
 		cb(null, renderReady);
 	}
@@ -141,28 +171,6 @@ module.exports = class App extends Component {
 			return this.stopPlaying();
 		}
 		this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
-	}
-
-	checkIfFavoriteByAmpacheSongId (AmpacheSongID) {
-		this.playlist['favorites'].forEach((song) => {
-			if(song.ID == AmpacheSongID){
-				return true;
-			}
-		});
-		return false;
-	}
-
-	markAllFavorites () {
-		this.state.connection.getPlaylistSongs(1, (err, songs) => {
-
-			let newPlaylists = this.state.playlists;   
-			songs.forEach((song) => {
-				console.log("A", song);
-				newPlaylists['home'][song.ID].Favorite = true;
-			});
- 
-			this.setState({playlists: newPlaylists});
-		});		
 	}
 
 	addSongToFavoriteByAmpacheSongId (AmpacheSongId) {
@@ -254,19 +262,40 @@ module.exports = class App extends Component {
 		this.setState({renderSongs: this.state.allSongs});
 	}
 
-	playlist () {
+	favorites () {
 		this.renderFavPlaylist((err, renderOut) => {
 			console.log(renderOut);
 			this.setState({renderSongs: renderOut});
 		});
 	}
 
+	playlist (playlistID, playlistName) {
+		this.generatePlaylist(playlistID, (err, cb) => {
+			this.renderPlaylist(playlistName, (err, cb) => {
+				this.setState({renderSongs: cb});	
+			});
+		});	
+	}
+
 	render () {
-		const sidebarContent = <div>
+
+		console.log(this.state.playlists.length, this.state.playlists);
+		this.state.playlists.forEach((object) => {
+			console.log("A", object);
+		});
+
+		let sidebarContent = <div>
 			<div className='sidebarTitle'>Ampact</div>
 			<div>
 				<button onClick={(e) => this.home(e)}>Home</button>
-				<button onClick={(e) => this.playlist(e)}>Playlist</button>
+				<button onClick={(e) => this.favorites(e)}>Favorites</button>
+				<div>
+					{this.state.playlists.map((object, i) => {
+							return (
+								<button onClick={(ID, Name) => this.playlist(object.ID, object.Name)}>Home</button>
+							);
+					})}
+				</div>
 			</div>
 			<div className='settings'>
 				<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
@@ -296,7 +325,7 @@ module.exports = class App extends Component {
 									<div>{object.Artist}</div>
 									<div>{object.Album}</div>
 							</div>
-						)
+						);
 					})}
 				</div>
 

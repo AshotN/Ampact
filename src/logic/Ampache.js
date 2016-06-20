@@ -5,7 +5,7 @@ const https = require('https');
 const xml2js = require('xml2js')
 const request = require('request');
 import { Song } from './Song'
-
+import { Playlist } from '../logic/Playlist'
 
 export class Ampache {
 
@@ -123,6 +123,32 @@ export class Ampache {
 
 		});
 
+	}
+
+	getAllPlaylists (cb) {
+		console.log(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+				
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+
+					let playlists = [];
+					JSONData.forEach((playlist) => {
+						let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name)
+						playlists.push(ourPlaylist);
+					});
+					cb(null, playlists);
+
+				}
+			}
+
+		});		
 	}
 
 	getPlaylistSongs (playListID, cb) {

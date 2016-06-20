@@ -6,8 +6,6 @@ export class Song {
 
 		//TODO: Some validation
 
-		console.log(songArray);
-
 		this._ampacheID = songArray.id;
 		this._Album = songArray.album.name;
 		this._Artist = songArray.artist.name;
