@@ -18,7 +18,7 @@ module.exports = class App extends Component {
 			transitions: false,
 			connection: null,
 			renderSongs: [],
-			playlists: [],
+			playlists: new Map(),
 			allSongs: [],
 			soundHowl: null,
 			isPlaying: false,
@@ -55,7 +55,7 @@ module.exports = class App extends Component {
 				this.state.connection.getSongs((err, songs) => {
 					let theSongs = []; //Please make a better variable name...
 					songs.forEach((song) => {
-						console.log(song);
+						// console.log(song);
 						theSongs[song.ID] = song;
 					});
 
@@ -79,9 +79,9 @@ module.exports = class App extends Component {
 			let newPlaylists = this.state.playlists;
 			playlists.forEach((playlist) => {
 				console.log(playlist);
-				newPlaylists[playlist.Name] = playlist;
+				newPlaylists.set(playlist.Name, playlist);
 			});
-			console.log(newPlaylists);
+			console.log(newPlaylists.length, newPlaylists);
 			this.setState({playlists: newPlaylists});
 		});
 	}
@@ -90,18 +90,21 @@ module.exports = class App extends Component {
 		this.state.connection.getPlaylistSongs(ampachePlaylistID, (err, songs) => {
 
 			let updateAllSongs = this.state.allSongs;
-			let newPlaylists = this.state.playlists || []; 
+			let newPlaylists = this.state.playlists;
+
+
+			//Clear the playlist so we can re-render it
+			newPlaylists.set(playlistName, new Playlist(ampachePlaylistID, playlistName));
 
 			songs.forEach((song) => {
-				console.log(song);
 				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
 
-				newPlaylists[playlistName].pushSingleSongID(song.ID);
+				newPlaylists.get(playlistName).pushSingleSongID(song.ID);
 			});
 
 
 			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
-				cb();
+				cb(null);
 			});
 		});		
 	}
@@ -112,7 +115,6 @@ module.exports = class App extends Component {
 			let updateAllSongs = this.state.allSongs;
 
 			songs.forEach((song) => {
-				console.log(song);
 				updateAllSongs[song.ID].Favorite = true;
 				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
 
@@ -127,11 +129,14 @@ module.exports = class App extends Component {
 	}
 
 	renderPlaylist (PlaylistName, cb) {
+		let temp = this.state.allSongs;
+
 		let renderReady = []; // Again needs a better variable name
-		this.state.playlists[PlaylistName].Songs.forEach((song) => {
-			console.log(song);
-			renderReady.push(this.state.allSongs[song.ID]);
+		this.state.playlists.get(PlaylistName).Songs.forEach((song) => {
+			console.log(song, temp[song]);
+			renderReady.push(temp[song]);
 		});
+		console.log(renderReady);
 		cb(null, renderReady);
 	}
 
@@ -270,8 +275,9 @@ module.exports = class App extends Component {
 	}
 
 	playlist (playlistID, playlistName) {
-		this.generatePlaylist(playlistID, (err, cb) => {
+		this.generatePlaylist(playlistID, playlistName, (err) => {
 			this.renderPlaylist(playlistName, (err, cb) => {
+				console.log(cb);
 				this.setState({renderSongs: cb});	
 			});
 		});	
@@ -279,10 +285,12 @@ module.exports = class App extends Component {
 
 	render () {
 
+	let playlists = [];
+	this.state.playlists.forEach((value, key) => {
+		playlists.push(<button key={value.ID} onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}</button>);
+	});
+
 		console.log(this.state.playlists.length, this.state.playlists);
-		this.state.playlists.forEach((object) => {
-			console.log("A", object);
-		});
 
 		let sidebarContent = <div>
 			<div className='sidebarTitle'>Ampact</div>
@@ -290,11 +298,7 @@ module.exports = class App extends Component {
 				<button onClick={(e) => this.home(e)}>Home</button>
 				<button onClick={(e) => this.favorites(e)}>Favorites</button>
 				<div>
-					{this.state.playlists.map((object, i) => {
-							return (
-								<button onClick={(ID, Name) => this.playlist(object.ID, object.Name)}>Home</button>
-							);
-					})}
+					{playlists}
 				</div>
 			</div>
 			<div className='settings'>
@@ -315,6 +319,7 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
+						console.log(object, i);
 						let songClasses = classNames('song', {'playingNow': object.ID === this.state.playingAmpacheSongId});
 						let favoriteIconClasses = classNames('favSong', {'favorited': object.Favorite});
 						return (

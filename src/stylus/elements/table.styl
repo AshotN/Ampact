@@ -10,7 +10,7 @@
 		width: 33%;
 
 .songs
-	width: 99%;
+	min-width: 800px;
 	margin: 0 auto;
 	color: white;
 	text-align: center;
@@ -19,8 +19,7 @@
 	.song 
 		border-bottom: 1px solid #3C3C3C;
 		transition: background-color 0.3s;
-		padding: 10px 0 10px;
-		height 20px
+		padding: 5px
 
 		div:first-child
 			background-image: url('assets/Images/plusIcon.png');
@@ -28,9 +27,6 @@
 			background-size: 90%;
 			height: 32px;
 			background-repeat: no-repeat;
-			position: relative;
-			left: 5px;
-			bottom: 5px;
 			-webkit-filter: grayscale(100%)
 			&:hover
 				-webkit-filter: grayscale(0%)
@@ -44,8 +40,12 @@
 			left: 25px;
 
 		div
-			float: left;
+			display: inline-block;
 			width: 30%;
+			vertical-align: middle;
+			overflow hidden
+			text-overflow: ellipsis;
+			white-space: nowrap;
 
 		&:first-child 
 			border-top: 1px solid #3C3C3C;
