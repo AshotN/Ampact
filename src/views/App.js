@@ -5,8 +5,9 @@ import { Song } from '../logic/Song'
 import { Playlist } from '../logic/Playlist'
 import { Howl } from 'howler'
 import Footer from './components/footer'
+// import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
-
+import SongComponent from './components/Song'
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -34,6 +35,8 @@ module.exports = class App extends Component {
 		this.playPauseSong = this.playPauseSong.bind(this);
 		this.songIsOver = this.songIsOver.bind(this);
 		this.playPreviousSong = this.playPreviousSong.bind(this);
+		this.playSong = this.playSong.bind(this);
+		this.favSong = this.favSong.bind(this);
 
 
 		this.connect();
@@ -192,8 +195,11 @@ module.exports = class App extends Component {
 
 	favSong (e, AmpacheSongId) {
 		console.log("Favorite Song", AmpacheSongId);
-		e.preventDefault(); // Let's stop this event.
-		e.stopPropagation(); // Really this time.
+
+		if(e) {
+			e.preventDefault(); // Let's stop this event.
+			e.stopPropagation(); // Really this time.
+		}
 
 		if(this.state.allSongs[AmpacheSongId].Favorite == false) {
 			let newAllSongs = this.state.allSongs;
@@ -274,6 +280,7 @@ module.exports = class App extends Component {
 		});
 	}
 
+	//Render the playlist
 	playlist (playlistID, playlistName) {
 		this.generatePlaylist(playlistID, playlistName, (err) => {
 			this.renderPlaylist(playlistName, (err, cb) => {
@@ -285,6 +292,12 @@ module.exports = class App extends Component {
 
 	render () {
 
+	// // Show when window is right-clicked
+	// window.addEventListener('contextmenu', (e) => {
+	// 	e.preventDefault();
+	// 	this.state.menu.popup(remote.getCurrentWindow());
+	// }, false);
+
 	let playlists = [];
 	this.state.playlists.forEach((value, key) => {
 		playlists.push(<button key={value.ID} onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}</button>);
@@ -295,9 +308,12 @@ module.exports = class App extends Component {
 		let sidebarContent = <div>
 			<div className='sidebarTitle'>Ampact</div>
 			<div>
-				<button onClick={(e) => this.home(e)}>Home</button>
-				<button onClick={(e) => this.favorites(e)}>Favorites</button>
-				<div>
+				<div className='defaultPlaylists'>
+					<button onClick={(e) => this.home(e)}>Home</button>
+					<button onClick={(e) => this.favorites(e)}>Favorites</button>
+				</div>
+				<div className='playlists'>
+					<span className='title'>Playlists</span>
 					{playlists}
 				</div>
 			</div>
@@ -320,17 +336,8 @@ module.exports = class App extends Component {
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
 						console.log(object, i);
-						let songClasses = classNames('song', {'playingNow': object.ID === this.state.playingAmpacheSongId});
-						let favoriteIconClasses = classNames('favSong', {'favorited': object.Favorite});
-						return (
-							<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(object.ID, object.URL, i)}
-								className={songClasses} key={i}>
-									<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, object.ID)}></div>
-									<div>{object.Title}</div>
-									<div>{object.Artist}</div>
-									<div>{object.Album}</div>
-							</div>
-						);
+
+						return <SongComponent key={i} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} />
 					})}
 				</div>
 

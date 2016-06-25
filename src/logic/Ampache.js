@@ -38,6 +38,20 @@ export class Ampache {
 	}
 
 
+	errorHandler (errorCode, cb) {
+		console.log(errorCode);
+		if(errorCode == 401){
+			handshake((err, cb) => {
+				if(err) {
+					cb(false);
+				}
+				else {
+					cb(true);
+				}
+			});
+		}
+	}
+
 
 	handshake (cb) {
 		var time = Math.round((new Date()).getTime() / 1000);
@@ -57,8 +71,11 @@ export class Ampache {
 
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
-					console.log(errorCode);
-					return cb(errorCode, null);
+					this.errorHandler(errorCode, (resolved) => {
+						if(resolved) {
+							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+						}
+					});
 				}
 				else if(JSONData.auth != null){
 					console.log(JSONData.auth);
@@ -159,8 +176,11 @@ export class Ampache {
 				
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
-					console.log(errorCode);
-					return cb(errorCode, null);
+					this.errorHandler(errorCode, (resolved) => {
+						if(resolved) {
+							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+						}
+					});
 				}
 				else {
 
@@ -188,8 +208,11 @@ export class Ampache {
 				
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
-					console.log(errorCode);
-					return cb(errorCode, null);
+					this.errorHandler(errorCode, (resolved) => {
+						if(resolved) {
+							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+						}
+					});
 				}
 				else {
 
@@ -210,8 +233,11 @@ export class Ampache {
 				
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
-					console.log(errorCode);
-					return cb(errorCode, null);
+					this.errorHandler(errorCode, (resolved) => {
+						if(resolved) {
+							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+						}
+					});
 				}
 				else {
 
