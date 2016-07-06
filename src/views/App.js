@@ -2,12 +2,13 @@ import { Component } from 'react'
 import Sidebar from 'react-sidebar'
 import { Ampache } from '../logic/Ampache'
 import { Song } from '../logic/Song'
+import { SongRender } from '../logic/SongRender'
 import { Playlist } from '../logic/Playlist'
 import { Howl } from 'howler'
 import Footer from './components/footer'
 // import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
-import SongComponent from './components/Song'
+import SongRow from './components/SongRow'
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -19,6 +20,7 @@ module.exports = class App extends Component {
 			transitions: false,
 			connection: null,
 			renderSongs: [],
+			currentView: null,
 			playlists: new Map(),
 			allSongs: [],
 			soundHowl: null,
@@ -37,6 +39,8 @@ module.exports = class App extends Component {
 		this.playPreviousSong = this.playPreviousSong.bind(this);
 		this.playSong = this.playSong.bind(this);
 		this.favSong = this.favSong.bind(this);
+		this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
+		this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 
 
 		this.connect();
@@ -66,7 +70,7 @@ module.exports = class App extends Component {
 						console.log("AAYYYY");
 						this.generateFavorits((cb) => {
 							console.log("OHHHHHH");
-							this.setState({renderSongs: theSongs});
+							this.setState({renderSongs: theSongs, currentView: -1});
 						});
 					});
 				});
@@ -181,18 +185,6 @@ module.exports = class App extends Component {
 		this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
 	}
 
-	addSongToFavoriteByAmpacheSongId (AmpacheSongId) {
-		this.state.connection.addSongToPlaylist(1, AmpacheSongId, (err, cb) => {
-			console.log(cb);
-		});
-	}
-
-	removeSongFromFavorite (TrackNumber) {
-		this.state.connection.removeSongFromPlaylist(1, TrackNumber, (err, cb) => {
-			console.log(cb);
-		});
-	}
-
 	favSong (e, AmpacheSongId) {
 		console.log("Favorite Song", AmpacheSongId);
 
@@ -204,18 +196,30 @@ module.exports = class App extends Component {
 		if(this.state.allSongs[AmpacheSongId].Favorite == false) {
 			let newAllSongs = this.state.allSongs;
 
-			this.addSongToFavoriteByAmpacheSongId(AmpacheSongId);
-			newAllSongs[AmpacheSongId].Favorite = true;
 
-			this.setState({allSongs: newAllSongs});
+			this.state.connection.addSongToPlaylist(999, AmpacheSongId, (err, cb) => {
+				if(err){
+					//TODO: rror handling!
+					return;
+				}
+				newAllSongs[AmpacheSongId].Favorite = true;
+
+				this.setState({allSongs: newAllSongs});
+			});
+
 		}
-		else{
+		else {
 			let newAllSongs = this.state.allSongs;
 
-			this.removeSongFromFavorite(this.state.allSongs[AmpacheSongId].PlaylistTrackNumber);
-			newAllSongs[AmpacheSongId].Favorite = false;
+			this.state.connection.removeSongFromPlaylist(999, this.state.allSongs[AmpacheSongId].PlaylistTrackNumber, (err, cb) => {
+				if(err){
+					//TODO: rror handling!
+					return;
+				}
+				newAllSongs[AmpacheSongId].Favorite = false;
 
-			this.setState({allSongs: newAllSongs});
+				this.setState({allSongs: newAllSongs});
+			});
 		}
 
 	}
@@ -239,7 +243,7 @@ module.exports = class App extends Component {
 		this.state.soundHowl = sound;
 		let howlID = this.state.soundHowl.play();
 
-		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingHowlID: howlID, playingIndex: playingIndex, playingAmpacheSongId: AmpacheSongId});
+		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingHowlID: howlID, playingIndex: playingIndex, playingAmpacheSongId: parseInt(AmpacheSongId)});
 	}
 
 
@@ -270,13 +274,13 @@ module.exports = class App extends Component {
 
 	home () {
 		console.log(this.state.playlists);
-		this.setState({renderSongs: this.state.allSongs});
+		this.setState({renderSongs: this.state.allSongs, currentView: -1});
 	}
 
 	favorites () {
 		this.renderFavPlaylist((err, renderOut) => {
 			console.log(renderOut);
-			this.setState({renderSongs: renderOut});
+			this.setState({renderSongs: renderOut, currentView: 999});
 		});
 	}
 
@@ -284,12 +288,34 @@ module.exports = class App extends Component {
 	playlist (playlistID, playlistName) {
 		this.generatePlaylist(playlistID, playlistName, (err) => {
 			this.renderPlaylist(playlistName, (err, cb) => {
-				console.log(cb);
-				this.setState({renderSongs: cb});	
+				this.setState({renderSongs: cb, currentView: playlistID});	
 			});
 		});	
 	}
 
+	addSongToPlaylist (AmpacheSongID, Playlist) {
+		console.log(`Add ${AmpacheSongID} To ${Playlist}`);
+		this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
+			if(err){
+				//TODO: HANDLE ERRORS!
+				console.log("ERROR!");
+				return false;
+			}
+			this.playlist(Playlist.ID, Playlist.Name);
+		});
+	}
+
+	removeSongFromPlaylist (Song, Playlist) {
+		console.log(`Remove ${Song} From ${Playlist}`);
+		this.state.connection.removeSongFromPlaylist(Playlist.ID, Song.PlaylistTrackNumber, (err, cb) => {
+			if(err){
+				//TODO: HANDLE ERRORS!
+				console.log("ERROR!");
+				return false;
+			}
+			this.playlist(Playlist.ID, Playlist.Name);
+		});
+	}
 	render () {
 
 	// // Show when window is right-clicked
@@ -306,7 +332,7 @@ module.exports = class App extends Component {
 		console.log(this.state.playlists.length, this.state.playlists);
 
 		let sidebarContent = <div>
-			<div className='sidebarTitle'>Ampact</div>
+			<div className='sidebarTitle'>Ampact - {this.state.currentView	}</div>
 			<div>
 				<div className='defaultPlaylists'>
 					<button onClick={(e) => this.home(e)}>Home</button>
@@ -335,9 +361,7 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
-						console.log(object, i);
-
-						return <SongComponent key={i} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} />
+						return <SongRow key={i} Playlists={this.state.playlists} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} onAddSongToPlaylist={this.addSongToPlaylist} onRemoveSongFromPlaylist={this.removeSongFromPlaylist} />
 					})}
 				</div>
 

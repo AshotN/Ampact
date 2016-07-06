@@ -41,7 +41,7 @@ export class Ampache {
 	errorHandler (errorCode, cb) {
 		console.log(errorCode);
 		if(errorCode == 401){
-			handshake((err, cb) => {
+			this.handshake((err, cb) => {
 				if(err) {
 					cb(false);
 				}
@@ -210,7 +210,7 @@ export class Ampache {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
 						if(resolved) {
-							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+							addSongToPlaylist(playListID, PlaylistTrackNumber, cb);
 						}
 					});
 				}
