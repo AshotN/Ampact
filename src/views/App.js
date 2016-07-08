@@ -9,6 +9,8 @@ import Footer from './components/footer'
 // import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
 import SongRow from './components/SongRow'
+const remote = require('electron').remote;
+const BrowserWindow = remote.BrowserWindow;
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -46,8 +48,17 @@ module.exports = class App extends Component {
 		this.connect();
 	}
 
+
 	openSettings (e) {
-		console.log('I should really make this');//TODO: Figure this out!
+		var left = (screen.width/2);
+		var top = (screen.height/2);
+
+		let win = new BrowserWindow({width: 400, height: 500, x: left, y: top, frame: false, alwaysOnTop: true, resizable: false, show: false, backgroundColor: '#0E0E0E'});
+
+		win.loadURL(`file://${__dirname}/../settings.html`);
+		win.once('ready-to-show', () => {
+			win.show();
+		})
 	}
 
 	connect () {
@@ -86,7 +97,7 @@ module.exports = class App extends Component {
 			let newPlaylists = this.state.playlists;
 			playlists.forEach((playlist) => {
 				console.log(playlist);
-				newPlaylists.set(playlist.Name, playlist);
+				newPlaylists.set(playlist.ID, playlist);
 			});
 			console.log(newPlaylists.length, newPlaylists);
 			this.setState({playlists: newPlaylists});
@@ -101,12 +112,12 @@ module.exports = class App extends Component {
 
 
 			//Clear the playlist so we can re-render it
-			newPlaylists.set(playlistName, new Playlist(ampachePlaylistID, playlistName));
+			newPlaylists.set(ampachePlaylistID, new Playlist(ampachePlaylistID, playlistName));
 
 			songs.forEach((song) => {
 				updateAllSongs[song.ID].PlaylistTrackNumber = song.PlaylistTrackNumber;
 
-				newPlaylists.get(playlistName).pushSingleSongID(song.ID);
+				newPlaylists.get(ampachePlaylistID).pushSingleSongID(song.ID);
 			});
 
 
@@ -135,11 +146,11 @@ module.exports = class App extends Component {
 		});
 	}
 
-	renderPlaylist (PlaylistName, cb) {
+	renderPlaylist (PlaylistID, cb) {
 		let temp = this.state.allSongs;
 
 		let renderReady = []; // Again needs a better variable name
-		this.state.playlists.get(PlaylistName).Songs.forEach((song) => {
+		this.state.playlists.get(PlaylistID).Songs.forEach((song) => {
 			console.log(song, temp[song]);
 			renderReady.push(temp[song]);
 		});
@@ -287,7 +298,7 @@ module.exports = class App extends Component {
 	//Render the playlist
 	playlist (playlistID, playlistName) {
 		this.generatePlaylist(playlistID, playlistName, (err) => {
-			this.renderPlaylist(playlistName, (err, cb) => {
+			this.renderPlaylist(playlistID, (err, cb) => {
 				this.setState({renderSongs: cb, currentView: playlistID});	
 			});
 		});	
@@ -301,7 +312,8 @@ module.exports = class App extends Component {
 				console.log("ERROR!");
 				return false;
 			}
-			this.playlist(Playlist.ID, Playlist.Name);
+			this.state.playlists.get(Playlist.ID).pushSingleSongID(AmpacheSongID);;
+			// this.playlist(Playlist.ID, Playlist.Name);
 		});
 	}
 
@@ -318,21 +330,17 @@ module.exports = class App extends Component {
 	}
 	render () {
 
-	// // Show when window is right-clicked
-	// window.addEventListener('contextmenu', (e) => {
-	// 	e.preventDefault();
-	// 	this.state.menu.popup(remote.getCurrentWindow());
-	// }, false);
 
 	let playlists = [];
-	this.state.playlists.forEach((value, key) => {
-		playlists.push(<button key={value.ID} onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}</button>);
+	this.state.playlists.forEach((value) => {
+		console.log(value.ID, value.Name);
+		playlists.push(<button key={value.ID} onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}-{value.ID}</button>);
 	});
 
 		console.log(this.state.playlists.length, this.state.playlists);
 
 		let sidebarContent = <div>
-			<div className='sidebarTitle'>Ampact - {this.state.currentView	}</div>
+			<div className='sidebarTitle'>Ampact - {this.state.currentView}</div>
 			<div>
 				<div className='defaultPlaylists'>
 					<button onClick={(e) => this.home(e)}>Home</button>
@@ -361,7 +369,7 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
-						return <SongRow key={i} Playlists={this.state.playlists} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} onAddSongToPlaylist={this.addSongToPlaylist} onRemoveSongFromPlaylist={this.removeSongFromPlaylist} />
+						return <SongRow key={i} Playlists={this.state.playlists} currentView={this.state.currentView} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} onAddSongToPlaylist={this.addSongToPlaylist} onRemoveSongFromPlaylist={this.removeSongFromPlaylist} />
 					})}
 				</div>
 

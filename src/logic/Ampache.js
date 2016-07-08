@@ -178,7 +178,7 @@ export class Ampache {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
 						if(resolved) {
-							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+							this.removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
 						}
 					});
 				}
@@ -210,7 +210,7 @@ export class Ampache {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
 						if(resolved) {
-							addSongToPlaylist(playListID, PlaylistTrackNumber, cb);
+							this.addSongToPlaylist(playListID, PlaylistTrackNumber, cb);
 						}
 					});
 				}
@@ -235,7 +235,7 @@ export class Ampache {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
 						if(resolved) {
-							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
+							this.removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
 						}
 					});
 				}

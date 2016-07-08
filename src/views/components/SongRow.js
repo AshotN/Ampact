@@ -65,6 +65,16 @@ class SongRow extends Component  {
 			{
 				label: 'Playlists',
 				submenu: addToPlaylistEntry
+			},
+			{
+				type: 'separator'
+			},
+			{
+				label: 'Remove From This Playlist',
+				enabled: this.props.currentView != -1 && this.props.currentView != 999,
+				click () {
+					that.handlePlaylist(Song, that.props.Playlists.get(that.props.currentView), true);
+				}
 			}
 		];
 
