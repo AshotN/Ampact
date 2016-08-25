@@ -9,12 +9,13 @@ import Footer from './components/footer'
 // import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
 import SongRow from './components/SongRow'
+import TopMessage from './components/topMessage'
 const remote = require('electron').remote;
 const BrowserWindow = remote.BrowserWindow;
 
 module.exports = class App extends Component {
 	constructor (props) {
-		super(props)
+		super(props);
 
 		this.state = {
 			sidebarOpen: true,
@@ -32,8 +33,10 @@ module.exports = class App extends Component {
 			playingHowlID: -1,
 			playingAmpacheSongId: -1,
 			playingIndex: -1,
-			volume: 0.5
-		}
+			volume: 0.5,
+			topMessage: null,
+			connectionAttempts: 0
+		};
 
 		this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
 		this.playPauseSong = this.playPauseSong.bind(this);
@@ -58,18 +61,31 @@ module.exports = class App extends Component {
 		win.loadURL(`file://${__dirname}/../settings.html`);
 		win.once('ready-to-show', () => {
 			win.show();
-		})
+		});
 	}
 
 	connect () {
+
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
 		this.state.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
 
 		this.state.connection.handshake((err, result) => {
 			if(err) {
-				//handle error
+				if(err == 404)
+				{
+					this.showNotificationTop(`Unable To Connect To Server...Retrying(${this.state.connectionAttempts})`);
+					setTimeout(() =>
+					{
+						this.setState({connectionAttempts: this.state.connectionAttempts + 1}, () => {
+							//Recursion is fun
+							this.connect();
+						});
+					}, 10000)
+				}
 			}
 			else {
+				this.setState({connectionAttempts: 0});
+				console.log(result);
 				this.state.connection.getSongs((err, songs) => {
 					let theSongs = []; //Please make a better variable name...
 					songs.forEach((song) => {
@@ -88,6 +104,15 @@ module.exports = class App extends Component {
 				this.loadAllPlaylists();
 			}
 		});
+	}
+
+	showNotificationTop (message) {
+		this.setState({topMessage: message});
+
+		setTimeout(() =>
+		{
+			this.setState({topMessage: null});
+		}, 5000)
 	}
 
 	loadAllPlaylists () {
@@ -383,6 +408,7 @@ module.exports = class App extends Component {
 				 docked={this.state.docked}
 				 transitions={this.state.transitions}
 				 sidebarClassName='sidebar'>
+					<TopMessage Message={this.state.topMessage} />
 					{mainContent}
 				</Sidebar>
 			 </div>

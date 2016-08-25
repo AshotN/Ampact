@@ -62,7 +62,7 @@ export class Ampache {
 
 
 		console.log(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`);
-		request(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, (error, response, body) => {
+		request({url: `${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`, timeout:500}, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 
 				var JSONData = JSON.parse(body);
@@ -84,6 +84,13 @@ export class Ampache {
 				}
 
 			}
+			else {
+				if(error.code == 'ETIMEDOUT') {
+					console.log("TIMEOUT");
+					return cb(404, null);
+				}
+			}
+
 		});
 
 
