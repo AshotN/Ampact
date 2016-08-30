@@ -178,6 +178,7 @@ export class Ampache {
 	getPlaylistSongs (playListID, cb) {
 		console.log(playListID, `${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`);
 		request(`${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`, (error, response, body) => {
+			console.log(55, error);
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
 				

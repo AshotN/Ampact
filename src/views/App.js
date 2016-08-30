@@ -12,6 +12,7 @@ import SongRow from './components/SongRow'
 import TopMessage from './components/topMessage'
 const remote = require('electron').remote;
 const BrowserWindow = remote.BrowserWindow;
+const shortcuts = require('../logic/Shortcuts');
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -49,6 +50,9 @@ module.exports = class App extends Component {
 
 
 		this.connect();
+		shortcuts({
+			playPauseSong: this.playPauseSong
+		});
 	}
 
 
@@ -67,7 +71,7 @@ module.exports = class App extends Component {
 	connect () {
 
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
-		this.state.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
+		this.state.connection = new Ampache('admin', 'password', 'http://localhost/ampache');
 
 		this.state.connection.handshake((err, result) => {
 			if(err) {
@@ -153,7 +157,10 @@ module.exports = class App extends Component {
 	}
 
 	generateFavorits (cb) {
-		this.state.connection.getPlaylistSongs(1, (err, songs) => {
+		console.log("FAVVVV");
+		this.state.connection.getPlaylistSongs(999, (err, songs) => {
+
+			console.log(431, err);
 
 			let updateAllSongs = this.state.allSongs;
 
@@ -283,7 +290,7 @@ module.exports = class App extends Component {
 	}
 
 
-	playPauseSong (e) {
+	playPauseSong () {
 		if(this.state.isPlaying){
 			this.state.soundHowl.pause(this.state.playingHowlID);
 
