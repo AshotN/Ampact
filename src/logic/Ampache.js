@@ -2,10 +2,9 @@
 
 const crypto = require('crypto');
 const https = require('https');
-const xml2js = require('xml2js')
 const request = require('request');
-import { Song } from './Song'
-import { Playlist } from '../logic/Playlist'
+import { Song } from './Song';
+import { Playlist } from '../logic/Playlist';
 
 export class Ampache {
 

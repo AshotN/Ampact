@@ -4,7 +4,6 @@ import { Ampache } from '../logic/Ampache'
 import { Song } from '../logic/Song'
 import { SongRender } from '../logic/SongRender'
 import { Playlist } from '../logic/Playlist'
-import { Howl } from 'howler'
 import Footer from './components/footer'
 // import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
@@ -27,14 +26,13 @@ module.exports = class App extends Component {
 			currentView: null,
 			playlists: new Map(),
 			allSongs: [],
-			soundHowl: null,
 			isPlaying: false,
 			isPaused: false,
 			isStopped: true,
-			playingHowlID: -1,
+			playerObject: null,
 			playingAmpacheSongId: -1,
 			playingIndex: -1,
-			volume: 0.5,
+			volume: 50,
 			topMessage: null,
 			connectionAttempts: 0
 		};
@@ -201,7 +199,7 @@ module.exports = class App extends Component {
 		cb(null, renderReady);
 	}
 
-	songIsOver (e) {
+	songIsOver () {
 		//Play the next song by order - A WIP
 		this.playSongByPlayingIndex(this.state.playingIndex+1);
 	}
@@ -213,8 +211,8 @@ module.exports = class App extends Component {
 
 	stopPlaying(){
 		if(this.state.isStopped == false) {
-			this.state.soundHowl.stop();
-			this.setState({isPlaying: false, isPaused: false, isStopped: true, playingHowlID: -1, playingIndex: -1, playingAmpacheSongId: -1});				
+			this.state.playerObject.stop();
+			this.setState({isPlaying: false, isPaused: false, isStopped: true, playerObject: null, playingIndex: -1, playingAmpacheSongId: -1});
 		}
 	}
 
@@ -269,38 +267,32 @@ module.exports = class App extends Component {
 
 	playSong (AmpacheSongId, URL, playingIndex) {
 		console.log(playingIndex, URL);
-		var sound = new Howl({
-			src: [URL],
-			format: ['mp3'],
-			html5: true,
-			volume: this.state.volume,
-			onend: (e) => { this.songIsOver(e); },
-			onplay: (e) => { console.log('play'); }
+		var player = AV.Player.fromURL(URL);
+		player.volume = this.state.volume;
+		player.on('end', () => {
+			console.log("end");
+			this.songIsOver();
 		});
-
 		if(this.state.isPlaying) {
-			this.state.soundHowl.stop();
-			// this.setState({isPlaying: false, isPaused: false, isStopped: true});
+			this.state.playerObject.stop();
 		}
 
-		this.state.soundHowl = sound;
-		let howlID = this.state.soundHowl.play();
 
-		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingHowlID: howlID, playingIndex: playingIndex, playingAmpacheSongId: parseInt(AmpacheSongId)});
+		player.play();
+		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingIndex: playingIndex, playerObject: player, playingAmpacheSongId: parseInt(AmpacheSongId)});
 	}
 
 
 	playPauseSong () {
 		if(this.state.isPlaying){
-			this.state.soundHowl.pause(this.state.playingHowlID);
+			this.state.playerObject.pause();
 
 			this.setState({isPlaying: false, isPaused: true, isStopped: false});
 
 		}
 		else if(this.state.isPaused) {
-			this.state.soundHowl.volume(this.state.volume);
-			let id = this.state.soundHowl.play(this.state.playingHowlID);
-			console.log("resume: "+id);
+			this.state.playerObject.volume = this.state.volume;
+			this.state.playerObject.play();
 			this.setState({isPlaying: true, isPaused: false, isStopped: false});
 		}
 	}
@@ -310,9 +302,8 @@ module.exports = class App extends Component {
 		console.log("Recieved Volume: "+value);
 		this.setState({volume: value});
 		if(this.state.isPlaying) {
-			this.state.soundHowl.volume(value);
+			this.state.playerObject.volume = value;
 		}
-		// Howl.volume(value);
 	}
 
 	home () {

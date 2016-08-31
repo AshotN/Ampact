@@ -6,7 +6,7 @@ class Footer extends Component  {
 
 		this.state = {
 			volumeDrag: false,
-			volumeBarPos: 0.5
+			volumeBarPos: 50
 		};
 
 		this.onMouseDown = this.onMouseDown.bind(this);
@@ -43,9 +43,9 @@ class Footer extends Component  {
 	getVolumePosition (e) {
 		let volume = ((((e.clientX - document.getElementById('volumeControl').offsetLeft) / document.getElementById('volumeControl').offsetWidth)).toFixed(2));
 		if(volume > 1) {
-			return 1;
+			return 100;
 		}
-		return volume > 0 ? volume : 0;
+		return volume > 0 ? volume*100 : 0;
 	}
 
 	onMouseDown (e) {
@@ -84,7 +84,7 @@ class Footer extends Component  {
 							<div onClick={(e) => this.nextSong(e)} />
 						</div>
 						<div onMouseDown={this.onMouseDown} id='volumeControl' className='volumeArea'>
-							<span style={{width: (this.state.volumeBarPos*100)+'%'}} className='volumeBar'></span>
+							<span style={{width: (this.state.volumeBarPos)+'%'}} className='volumeBar'></span>
 						</div>
 					</div>
 				);
