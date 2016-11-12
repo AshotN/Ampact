@@ -4,6 +4,7 @@ import { Ampache } from '../logic/Ampache'
 import { Song } from '../logic/Song'
 import { SongRender } from '../logic/SongRender'
 import { Playlist } from '../logic/Playlist'
+import { Howl } from 'howler'
 import Footer from './components/footer'
 // import sidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
@@ -26,18 +27,23 @@ module.exports = class App extends Component {
 			currentView: null,
 			playlists: new Map(),
 			allSongs: [],
+			soundHowl: null,
+			isLoading: false,
 			isPlaying: false,
 			isPaused: false,
 			isStopped: true,
+			playingHowlID: -1,
 			playerObject: null,
 			playingAmpacheSongId: -1,
 			playingIndex: -1,
-			volume: 50,
+			volume: 0.5,
 			topMessage: null,
-			connectionAttempts: 0
+			connectionAttempts: 0,
+			FLAC: 0 //Can't wait for native FLAC support, firefox has it already!
 		};
 
 		this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
+        this.songSeekEvent = this.songSeekEvent.bind(this);
 		this.playPauseSong = this.playPauseSong.bind(this);
 		this.songIsOver = this.songIsOver.bind(this);
 		this.playPreviousSong = this.playPreviousSong.bind(this);
@@ -67,9 +73,8 @@ module.exports = class App extends Component {
 	}
 
 	connect () {
-
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
-		this.state.connection = new Ampache('admin', 'password', 'http://localhost/ampache');
+		this.state.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
 
 		this.state.connection.handshake((err, result) => {
 			if(err) {
@@ -96,9 +101,7 @@ module.exports = class App extends Component {
 					});
 
 					this.setState({allSongs: theSongs}, () => {
-						console.log("AAYYYY");
-						this.generateFavorits((cb) => {
-							console.log("OHHHHHH");
+						this.generateFavorites((cb) => {
 							this.setState({renderSongs: theSongs, currentView: -1});
 						});
 					});
@@ -151,10 +154,10 @@ module.exports = class App extends Component {
 			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
 				cb(null);
 			});
-		});		
+		});
 	}
 
-	generateFavorits (cb) {
+	generateFavorites (cb) {
 		console.log("FAVVVV");
 		this.state.connection.getPlaylistSongs(999, (err, songs) => {
 
@@ -168,7 +171,7 @@ module.exports = class App extends Component {
 
 			});
 
-			let newPlaylists = this.state.playlists || []; 
+			let newPlaylists = this.state.playlists || [];
 
 			this.setState({allSongs: updateAllSongs}, () => {
 				cb();
@@ -209,10 +212,34 @@ module.exports = class App extends Component {
 		this.playSongByPlayingIndex(this.state.playingIndex-1);
 	}
 
-	stopPlaying(){
+	stopPlaying() {
 		if(this.state.isStopped == false) {
-			this.state.playerObject.stop();
-			this.setState({isPlaying: false, isPaused: false, isStopped: true, playerObject: null, playingIndex: -1, playingAmpacheSongId: -1});
+			if(this.state.FLAC) {
+				this.state.playerObject.stop();
+				this.setState({
+					isPlaying: false,
+					isPaused: false,
+					isStopped: true,
+					playerObject: null,
+					playingIndex: -1,
+					playingAmpacheSongId: -1,
+					FLAC: 0
+				});
+			}
+			else {
+				this.state.soundHowl.stop();
+				this.setState({
+					isLoading: false,
+					isPlaying: false,
+					isPaused: false,
+					isStopped: true,
+					soundHowl: null,
+					playingIndex: -1,
+					playingAmpacheSongId: -1,
+					playingHowlID: -1,
+				});
+			}
+
 		}
 	}
 
@@ -240,7 +267,7 @@ module.exports = class App extends Component {
 
 			this.state.connection.addSongToPlaylist(999, AmpacheSongId, (err, cb) => {
 				if(err){
-					//TODO: rror handling!
+					//TODO: error handling!
 					return;
 				}
 				newAllSongs[AmpacheSongId].Favorite = true;
@@ -254,7 +281,7 @@ module.exports = class App extends Component {
 
 			this.state.connection.removeSongFromPlaylist(999, this.state.allSongs[AmpacheSongId].PlaylistTrackNumber, (err, cb) => {
 				if(err){
-					//TODO: rror handling!
+					//TODO: error handling!
 					return;
 				}
 				newAllSongs[AmpacheSongId].Favorite = false;
@@ -266,45 +293,157 @@ module.exports = class App extends Component {
 	}
 
 	playSong (AmpacheSongId, URL, playingIndex) {
-		console.log(playingIndex, URL);
-		var player = AV.Player.fromURL(URL);
-		player.volume = this.state.volume;
-		player.on('end', () => {
-			console.log("end");
-			this.songIsOver();
+		console.log(playingIndex, this.state.isLoading);
+
+		if(this.state.isPlaying || this.state.isLoading) {
+			if(this.state.FLAC) {
+				this.state.playerObject.stop();
+			}
+			else {
+				this.state.soundHowl.stop();
+				Howler.unload();
+			}
+		}
+
+		this.setState({
+			isLoading: true,
+			isPlaying: false,
+			isPaused: false,
+			isStopped: true,
+			playingHowlID: -1,
+			playingAmpacheSongId: -1
 		});
-		if(this.state.isPlaying) {
-			this.state.playerObject.stop();
+
+		let re = /(?:\.([^.]+))?$/;
+
+		let ext = re.exec(URL)[1];
+
+		console.log(ext);
+
+		if(ext == 'flac') {
+			console.log("FLAC!!!");
+			var player = AV.Player.fromURL(URL);
+			player.preload();
+			player.volume = this.state.volume * 100;
+			player.on('end', () => {
+				console.log("end");
+				this.songIsOver();
+			});
+			player.on('buffer', (percent) => {
+				console.log("Buffer: ", percent);
+			});
+			player.on('ready', () => {
+				console.log("READY");
+				player.play();
+				this.setState({
+					isLoading: false,
+					isPlaying: true,
+					isPaused: false,
+					isStopped: false,
+					playingHowlID: -1,
+					playingIndex: playingIndex,
+					playerObject: player,
+					playingAmpacheSongId: parseInt(AmpacheSongId),
+					FLAC: 1
+				});
+			});
+			player.on('error', (err) => {
+				console.log("err", err)
+			});
+		} else {
+			var sound = new Howl({
+				src: [URL],
+				format: ['mp3'],
+				html5: true,
+				volume: this.state.volume,
+				onend: (e) => {
+					console.log("OVER");
+					this.songIsOver(e);
+				},
+				onload: (e) => {
+					let howlID = sound.play();
+					this.setState({
+						isLoading: false,
+						isPlaying: true,
+						isPaused: false,
+						isStopped: false,
+						playingHowlID: howlID,
+						playingIndex: playingIndex,
+						playingAmpacheSongId: parseInt(AmpacheSongId),
+						FLAC: 0,
+						soundHowl: sound
+					});
+				},
+				onloaderror: (e) =>{
+					console.log("onLoadError");
+					this.setState({
+						isLoading: false,
+						isPlaying: false,
+						isPaused: false,
+						isStopped: true,
+						soundHowl: null,
+						playingIndex: -1,
+						playingAmpacheSongId: -1,
+						playingHowlID: -1
+					});
+					this.showNotificationTop(`Unable to Download Song, Are you Offline?`);
+					Howler.unload();
+
+				}
+			});
 		}
 
 
-		player.play();
-		this.setState({isPlaying: true, isPaused: false, isStopped: false, playingIndex: playingIndex, playerObject: player, playingAmpacheSongId: parseInt(AmpacheSongId)});
 	}
 
 
 	playPauseSong () {
-		if(this.state.isPlaying){
-			this.state.playerObject.pause();
+		if(this.state.isPlaying) {
+			if(this.state.FLAC) {
+				this.state.playerObject.pause();
+			}
+			else {
+				this.state.soundHowl.pause(this.state.playingHowlID);
+			}
 
 			this.setState({isPlaying: false, isPaused: true, isStopped: false});
 
 		}
 		else if(this.state.isPaused) {
-			this.state.playerObject.volume = this.state.volume;
-			this.state.playerObject.play();
+			if(this.state.FLAC) {
+                this.state.playerObject.volume = this.state.volume * 100;
+                this.state.playerObject.play();
+
+			}
+			else {
+                this.state.soundHowl.volume(this.state.volume);
+                this.state.soundHowl.play(this.state.playingHowlID);
+			}
+
 			this.setState({isPlaying: true, isPaused: false, isStopped: false});
 		}
 	}
 
-	 
 	volumeBarChangeEvent (value) {
-		console.log("Recieved Volume: "+value);
 		this.setState({volume: value});
 		if(this.state.isPlaying) {
-			this.state.playerObject.volume = value;
+		    if(this.state.FLAC) {
+                this.state.playerObject.volume = value*100;
+            }
+            else {
+                this.state.soundHowl.volume(value);
+            }
 		}
 	}
+
+    songSeekEvent (value) {
+        console.log(value);
+        if(this.state.isPlaying) {
+            let duration = this.state.soundHowl.duration(this.state.playingHowlID);
+            console.log(duration);
+            this.state.soundHowl.seek(value * duration);
+        }
+    }
 
 	home () {
 		console.log(this.state.playlists);
@@ -322,9 +461,9 @@ module.exports = class App extends Component {
 	playlist (playlistID, playlistName) {
 		this.generatePlaylist(playlistID, playlistName, (err) => {
 			this.renderPlaylist(playlistID, (err, cb) => {
-				this.setState({renderSongs: cb, currentView: playlistID});	
+				this.setState({renderSongs: cb, currentView: playlistID});
 			});
-		});	
+		});
 	}
 
 	addSongToPlaylist (AmpacheSongID, Playlist) {
@@ -351,16 +490,15 @@ module.exports = class App extends Component {
 			this.playlist(Playlist.ID, Playlist.Name);
 		});
 	}
-	render () {
+
+	render() {
 
 
-	let playlists = [];
-	this.state.playlists.forEach((value) => {
-		console.log(value.ID, value.Name);
-		playlists.push(<button key={value.ID} onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}-{value.ID}</button>);
-	});
-
-		console.log(this.state.playlists.length, this.state.playlists);
+		let playlists = [];
+		this.state.playlists.forEach((value) => {
+			playlists.push(<button key={value.ID}
+								   onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}-{value.ID}</button>);
+		});
 
 		let sidebarContent = <div>
 			<div className='sidebarTitle'>Ampact - {this.state.currentView}</div>
@@ -376,12 +514,12 @@ module.exports = class App extends Component {
 			</div>
 			<div className='settings'>
 				<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-					<img src='assets/images/settingsCog.png' />
+					<img src='assets/images/settingsCog.png'/>
 				</div>
 			</div>
 		</div>
 
-		let mainContent = 
+		let mainContent =
 			<div className='wrapper'>
 
 
@@ -392,7 +530,12 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
-						return <SongRow key={i} Playlists={this.state.playlists} currentView={this.state.currentView} Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId} onPlaySong={this.playSong} onFavSong={this.favSong} onAddSongToPlaylist={this.addSongToPlaylist} onRemoveSongFromPlaylist={this.removeSongFromPlaylist} />
+						return <SongRow key={i} Playlists={this.state.playlists} currentView={this.state.currentView}
+										Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId}
+										onPlaySong={this.playSong} onFavSong={this.favSong}
+										onAddSongToPlaylist={this.addSongToPlaylist}
+										onRemoveSongFromPlaylist={this.removeSongFromPlaylist}
+										isLoading={this.state.isLoading}/>
 					})}
 				</div>
 
@@ -400,17 +543,22 @@ module.exports = class App extends Component {
 
 		return (
 			<div>
-			 <div className='main'>
-				<Sidebar sidebar={sidebarContent}
-				 open={this.state.sidebarOpen}
-				 docked={this.state.docked}
-				 transitions={this.state.transitions}
-				 sidebarClassName='sidebar'>
-					<TopMessage Message={this.state.topMessage} />
-					{mainContent}
-				</Sidebar>
-			 </div>
-			<Footer onPlayPauseSong={this.playPauseSong} onPreviousSong={this.playPreviousSong} onNextSong={this.songIsOver} onChange={this.volumeBarChangeEvent} isPlaying={this.state.isPlaying} />
+				<div className='main'>
+					<Sidebar sidebar={sidebarContent}
+							 open={this.state.sidebarOpen}
+							 docked={this.state.docked}
+							 transitions={this.state.transitions}
+							 sidebarClassName='sidebar'>
+						<TopMessage Message={this.state.topMessage}/>
+						{mainContent}
+					</Sidebar>
+				</div>
+				<div className="debug">Loading:{this.state.isLoading.toString()}:Paused:{this.state.isPaused.toString()}:Playing:{this.state.isPlaying.toString()}:Stopped:{this.state.isStopped.toString()}</div>
+				<Footer onPlayPauseSong={this.playPauseSong} onPreviousSong={this.playPreviousSong}
+						onNextSong={this.songIsOver} onVolumeChange={this.volumeBarChangeEvent}
+						onSeekChange={this.songSeekEvent} isStopped={this.state.isStopped}
+						isPaused={this.state.isPaused} isLoading={this.state.isLoading} isPlaying={this.state.isPlaying}
+						soundHowl={this.state.soundHowl} playingHowlID={this.state.playingHowlID}/>
 			</div>
 
 		);

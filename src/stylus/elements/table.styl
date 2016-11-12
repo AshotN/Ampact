@@ -1,10 +1,15 @@
-.headers 
+@keyframes color_change {
+	from { color: mainColor }
+	to { color: #808080 }
+}
+
+.headers
 	width: 99%;
 	text-align: center;
 	margin: 0 auto;
 	height 35px
 	div
-		color: gray;
+		color: #808080;
 		padding: 10px 0;
 		float: left;
 		width: 33%;
@@ -56,4 +61,9 @@
 			transition: background-color 0.2s;
 			
 		&.playingNow
-			color: #03A9F4
+			color: mainColor
+
+
+
+		&.loadingNow
+			animation: color_change .5s infinite alternate;

@@ -29,7 +29,7 @@ class SidebarContent extends Component  {
 				</div>	
 				<div className='settings'>
 					<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-						<img src='assets/images/settingsCog.png' />
+						<img src='assets//images//settingsCog.png' />
 					</div>
 				</div>
 			</div>

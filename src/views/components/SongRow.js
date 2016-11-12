@@ -10,9 +10,8 @@ class SongRow extends Component  {
 		super(props);
 
 		this.state = {
-
-		};
-
+			loading: false
+		}
 	}
 
 	isSongInPlaylist(songID, Playlist) {
@@ -41,10 +40,10 @@ class SongRow extends Component  {
 
 
 		];
-		this.props.Playlists.forEach((Playlist, Name) => {
+		this.props.Playlists.forEach((Playlist, ID) => {
 			let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
 			addToPlaylistEntry.push({
-					label: Name,
+					label: Playlist.Name,
 					enabled: !inPlaylist,
 					click() {
 						that.handlePlaylist(Song, Playlist, inPlaylist);
@@ -95,6 +94,7 @@ class SongRow extends Component  {
 
 	playSong (AmpacheSongId, URL, playingIndex) {
 		if (typeof this.props.onPlaySong === 'function') {
+			this.setState({loading: true});
 			this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
 		}
 	}
@@ -104,12 +104,16 @@ class SongRow extends Component  {
 			this.props.onFavSong(e, AmpacheSongId);
 		}		
 	}
-
-
+	componentWillReceiveProps(nextProps) {
+		//Started Playing
+		if (nextProps.Song.ID == nextProps.playingAmpacheSongId && !nextProps.isLoading) {
+			console.log("STOP");
+			this.setState({loading: false});
+		}
+	}
 
 	render () {
-		console.log(this.props.Song.ID == this.props.playingAmpacheSongId);
-		let songClasses = classNames('song', {'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId});
+		let songClasses = classNames('song', {'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId, 'loadingNow': this.state.loading});
 		let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
 		return ( 
 			<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Song.URL, this.props.Index)}

@@ -11,13 +11,10 @@ class topMessage extends Component  {
 
     }
 
-
     render () {
 
         let style = this.props.Message == null ? '0' : '35px';
-        console.log(style)
         return (
-
             <div className='topMessage' style={{height: style}} >
                 <div>{this.props.Message}</div>
             </div>

@@ -60,19 +60,43 @@
 		margin-left 10px
 		transform: rotateY(180deg)
 
-	.volumeArea 
+
+	.seekerArea
+		display: inline-block;
+		cursor: pointer;
+		width: 65%;
+		left: 75px;
+		bottom: 20px;
+		position: relative;
+		background-color: #000;
+		height: 20px;
+		.seeker
+			display: block;
+			height: 20px;
+			background-color: mainColor;
+			z-index: 10;
+			width: 90%;
+
+	.timeStamp
+		display: inline-block;
+		color: mainColor;
+		position: relative;
+		left: 80px;
+		bottom: 25px;
+		font-family Helvetica
+
+	.volumeArea
 		position: relative;
 		cursor: pointer;
-		width: 30%;
+		width: 17%;
 		right: 10px;
-		top: 25px;
+		top: 24px;
 		float: right;
-		background-color: black;
+		background-color: #000;
 		height: 20px;
-
-	.volumeBar 
-		display:block;
-		height:20px;
-		background-color:#03a9f4;
-		z-index:10;
-		width: 90%;
+		.volumeBar
+			display:block;
+			height:20px;
+			background-color: mainColor;
+			z-index:10;
+			width: 90%;

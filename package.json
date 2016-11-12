@@ -31,6 +31,7 @@
     "react-sidebar": "^2.2.1",
     "request": "^2.74.0",
     "stylus": "^0.54.5",
-    "combokeys": "^2.4.6"
+    "combokeys": "^2.4.6",
+    "howler": "^2.0.1"
   }
 }
