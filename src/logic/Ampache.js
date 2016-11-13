@@ -84,16 +84,13 @@ export class Ampache {
 
 			}
 			else {
-				if(error.code == 'ETIMEDOUT') {
-					console.log("TIMEOUT");
-					return cb(404, null);
-				}
+				return cb(error, null);
 			}
 
 		});
 
 
-		
+
 	}
 
 	getSongs (cb) {
@@ -123,12 +120,40 @@ export class Ampache {
 		});
 	}
 
+	getSongsFromAlbum (albumID, cb) {
+		//TODO
+		console.log(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
+		request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
+			if (!error && response.statusCode == 200) {
+				var JSONData = JSON.parse(body);
+
+				console.log(JSONData);
+				if(JSONData.error != null) {
+					var errorCode = JSONData.error.code;
+					console.log(errorCode);
+					return cb(errorCode, null);
+				}
+				else {
+					let songs = [];
+
+					JSONData.forEach(function(entry) {
+						// console.log(entry.song);
+						let song = new Song(entry.song);
+						songs.push(song);
+					});
+					cb(null, songs);
+
+				}
+			}
+		});
+	}
+
 	getSong (AmpacheID, cb) {
 		console.log(AmpacheID, `${this.server}/server/json.server.php?action=song&filter=${AmpacheID}&auth=${this.authCode}`);
 		request(`${this.server}/server/json.server.php?action=song&filter=${AmpacheID}&auth=${this.authCode}`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-				
+
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
 					console.log(errorCode);
@@ -153,7 +178,7 @@ export class Ampache {
 		request(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-				
+
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
 					console.log(errorCode);
@@ -163,7 +188,7 @@ export class Ampache {
 
 					let playlists = [];
 					JSONData.forEach((playlist) => {
-						let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name)
+						let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name);
 						playlists.push(ourPlaylist);
 					});
 					cb(null, playlists);
@@ -171,7 +196,7 @@ export class Ampache {
 				}
 			}
 
-		});		
+		});
 	}
 
 	getPlaylistSongs (playListID, cb) {
@@ -180,7 +205,7 @@ export class Ampache {
 			console.log(55, error);
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-				
+
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
@@ -204,7 +229,7 @@ export class Ampache {
 				}
 			}
 
-		});		
+		});
 	}
 
 	addSongToPlaylist (playListID, AmpacheSongID, cb) {
@@ -212,7 +237,7 @@ export class Ampache {
 		request(`${this.server}/server/json.server.php?action=playlist_add_song&filter=${playListID}&song=${AmpacheSongID}&auth=${this.authCode}`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-				
+
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
@@ -229,7 +254,7 @@ export class Ampache {
 				}
 			}
 
-		});		
+		});
 	}
 
 	removeSongFromPlaylist (playListID, PlaylistTrackNumber, cb) {
@@ -237,7 +262,7 @@ export class Ampache {
 		request(`${this.server}/server/json.server.php?action=playlist_remove_song&filter=${playListID}&track=${PlaylistTrackNumber}&auth=${this.authCode}`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
 				var JSONData = JSON.parse(body);
-				
+
 				if(JSONData.error != null) {
 					var errorCode = JSONData.error.code;
 					this.errorHandler(errorCode, (resolved) => {
@@ -254,7 +279,9 @@ export class Ampache {
 				}
 			}
 
-		});		
+		});
 	}
+
+
 
 }

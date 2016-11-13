@@ -1,7 +1,7 @@
 import { Component } from 'react'
-const remote = require('electron').remote
-const Menu = remote.Menu
-const MenuItem = remote.MenuItem
+const remote = require('electron').remote;
+const Menu = remote.Menu;
+const MenuItem = remote.MenuItem;
 import classNames from 'classnames';
 
 
@@ -10,7 +10,6 @@ class SongRow extends Component  {
 		super(props);
 
 		this.state = {
-			loading: false
 		}
 	}
 
@@ -86,7 +85,7 @@ class SongRow extends Component  {
 		console.log(Playlist, inPlaylist);
 		if (!inPlaylist && typeof this.props.onAddSongToPlaylist === 'function') {
 			this.props.onAddSongToPlaylist(Song.ID, Playlist);
-		} 
+		}
 		else if (inPlaylist && typeof this.props.onRemoveSongFromPlaylist === 'function') {
 			this.props.onRemoveSongFromPlaylist(Song, Playlist);
 		}
@@ -94,34 +93,35 @@ class SongRow extends Component  {
 
 	playSong (AmpacheSongId, URL, playingIndex) {
 		if (typeof this.props.onPlaySong === 'function') {
-			this.setState({loading: true});
 			this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
+		}
+	}
+
+	renderAlbum (e, albumID){
+		e.preventDefault(); // Let's stop this event.
+		e.stopPropagation(); // Really this time.
+		if (typeof this.props.onRenderAlbum === 'function') {
+			console.log("AAA");
+			this.props.onRenderAlbum(albumID);
 		}
 	}
 
 	favSong (e, AmpacheSongId) {
 		if (typeof this.props.onFavSong === 'function') {
 			this.props.onFavSong(e, AmpacheSongId);
-		}		
-	}
-	componentWillReceiveProps(nextProps) {
-		//Started Playing
-		if (nextProps.Song.ID == nextProps.playingAmpacheSongId && !nextProps.isLoading) {
-			console.log("STOP");
-			this.setState({loading: false});
 		}
 	}
 
 	render () {
-		let songClasses = classNames('song', {'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId, 'loadingNow': this.state.loading});
+		let songClasses = classNames('song', {'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId, 'loadingNow': this.props.Song.ID == this.props.loadingAmpacheSongId});
 		let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
-		return ( 
+		return (
 			<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Song.URL, this.props.Index)}
 				onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses} >
 					<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
-					<div>{this.props.Song.Title}</div>
-					<div>{this.props.Song.Artist}</div>
-					<div>{this.props.Song.Album}</div>
+					<div className='songTitle'>{this.props.Song.Title}</div>
+					<div className='songArtist'>{this.props.Song.Artist}</div>
+					<div className='songAlbum' onClick={(e, ampacheAlbum) => this.renderAlbum(e, this.props.Song.albumID)}>{this.props.Song.Album}</div>
 			</div>
 		);
 	}
@@ -132,7 +132,8 @@ SongRow.propTypes = {
 	Index: React.PropTypes.number.isRequired,
 	playingAmpacheSongId: React.PropTypes.number.isRequired,
 	onPlaySong: React.PropTypes.func.isRequired,
-	onFavSong: React.PropTypes.func.isRequired
+	onFavSong: React.PropTypes.func.isRequired,
+	onRenderAlbum: React.PropTypes.func.isRequired
 
 };
 

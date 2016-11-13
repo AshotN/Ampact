@@ -39,17 +39,12 @@ class Footer extends Component  {
 		// }
 
 		if(prevProps.isLoading && this.props.isPlaying) {
-			console.log("A");
 			this.clearSeekBar();
 			this.startSeekBar();
 		} else if(prevProps.isPlaying && this.props.isPaused) {
-			console.log("B");
 			this.pauseSeekBar();
 		} else if(prevProps.isPaused && this.props.isPlaying){
-			console.log("C");
 			this.startSeekBar();
-		} else{
-			console.log(prevProps.isLoading + ":" + prevProps.isPaused + ":" + this.props.isPlaying + ":" + this.props.isStopped);
 		}
 		
 	}
@@ -83,7 +78,6 @@ class Footer extends Component  {
 	}
 
 	pauseSeekBar() {
-		console.log("Clear");
 		clearInterval(this.state.seekLoopId);
 	}
 

@@ -21,7 +21,7 @@
 	text-align: center;
 
 
-	.song 
+	.song
 		border-bottom: 1px solid #3C3C3C;
 		transition: background-color 0.3s;
 		padding: 5px
@@ -35,7 +35,7 @@
 			-webkit-filter: grayscale(100%)
 			&:hover
 				-webkit-filter: grayscale(0%)
-			
+
 			&.favorited
 				transform: rotateZ(45deg);
 
@@ -43,6 +43,11 @@
 			text-align: left;
 			position: relative;
 			left: 25px;
+
+		.songAlbum:hover
+			color: secondaryColor;
+			cursor: pointer;
+
 
 		div
 			display: inline-block;
@@ -52,14 +57,14 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 
-		&:first-child 
+		&:first-child
 			border-top: 1px solid #3C3C3C;
-		
+
 
 		&:hover
 			background-color: #10719E;
 			transition: background-color 0.2s;
-			
+
 		&.playingNow
 			color: mainColor
 

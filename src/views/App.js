@@ -10,6 +10,7 @@ import Footer from './components/footer'
 import classNames from 'classnames';
 import SongRow from './components/SongRow'
 import TopMessage from './components/topMessage'
+import retry from 'async/retry';
 const remote = require('electron').remote;
 const BrowserWindow = remote.BrowserWindow;
 const shortcuts = require('../logic/Shortcuts');
@@ -24,7 +25,7 @@ module.exports = class App extends Component {
 			transitions: false,
 			connection: null,
 			renderSongs: [],
-			currentView: null,
+			currentView: null, //Consider Removing
 			playlists: new Map(),
 			allSongs: [],
 			soundHowl: null,
@@ -34,6 +35,7 @@ module.exports = class App extends Component {
 			isStopped: true,
 			playingHowlID: -1,
 			playerObject: null,
+			loadingAmpacheSongId: -1,
 			playingAmpacheSongId: -1,
 			playingIndex: -1,
 			volume: 0.5,
@@ -43,7 +45,7 @@ module.exports = class App extends Component {
 		};
 
 		this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
-        this.songSeekEvent = this.songSeekEvent.bind(this);
+		this.songSeekEvent = this.songSeekEvent.bind(this);
 		this.playPauseSong = this.playPauseSong.bind(this);
 		this.songIsOver = this.songIsOver.bind(this);
 		this.playPreviousSong = this.playPreviousSong.bind(this);
@@ -51,9 +53,31 @@ module.exports = class App extends Component {
 		this.favSong = this.favSong.bind(this);
 		this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
 		this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
+		this.renderAlbum = this.renderAlbum.bind(this);
 
 
-		this.connect();
+		retry({times: 3, interval: 200}, this.connect.bind(this), (err, result) => {
+			console.log(err, result);
+			if(err) {
+				this.showNotificationTop("There was a problem connecting to the server");
+				console.error("There was a problem connecting to the server", err);
+			} else {
+				retry({times: 3, interval: 2000}, this.renderSongs.bind(this), (err, result) => {
+					if(err){
+						this.showNotificationTop("There was a problem getting the songs");
+						console.error("There was a problem getting the songs", err);
+					}
+				});
+
+				retry({times: 3, interval: 2000}, this.loadAllPlaylists.bind(this), (err, result) => {
+					if(err) {
+						this.showNotificationTop("There was a problem getting the playlists");
+						console.error("There was a problem getting the playlists", err);
+					}
+				});
+			}
+		});
+
 		shortcuts({
 			playPauseSong: this.playPauseSong
 		});
@@ -72,57 +96,53 @@ module.exports = class App extends Component {
 		});
 	}
 
-	connect () {
+	connect (cb) {
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
 		this.state.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
 
 		this.state.connection.handshake((err, result) => {
 			if(err) {
-				if(err == 404)
-				{
-					this.showNotificationTop(`Unable To Connect To Server...Retrying(${this.state.connectionAttempts})`);
-					setTimeout(() =>
-					{
-						this.setState({connectionAttempts: this.state.connectionAttempts + 1}, () => {
-							//Recursion is fun
-							this.connect();
-						});
-					}, 10000)
-				}
+				return cb(err, result);
 			}
-			else {
-				this.setState({connectionAttempts: 0});
-				console.log(result);
-				this.state.connection.getSongs((err, songs) => {
-					let theSongs = []; //Please make a better variable name...
-					songs.forEach((song) => {
-						// console.log(song);
-						theSongs[song.ID] = song;
-					});
-
-					this.setState({allSongs: theSongs}, () => {
-						this.generateFavorites((cb) => {
-							this.setState({renderSongs: theSongs, currentView: -1});
-						});
-					});
-				});
-				this.loadAllPlaylists();
-			}
+			return cb(err, result);
 		});
 	}
 
-	showNotificationTop (message) {
+	renderSongs(cb){
+		this.state.connection.getSongs((err, songs) => {
+			if(err){
+				return cb(err, null);
+			}
+			let theSongs = []; //Please make a better variable name...
+			songs.forEach((song) => {
+				theSongs[song.ID] = song;
+			});
+
+			this.setState({allSongs: theSongs}, () => {
+				this.markFavorites((err, results) => {
+					if(err){
+						return cb(err, null);
+					}
+					this.setState({renderSongs: theSongs, currentView: -1});
+				});
+			});
+		});
+	}
+
+	showNotificationTop (message, timeout = 5000) {
 		this.setState({topMessage: message});
 
 		setTimeout(() =>
 		{
 			this.setState({topMessage: null});
-		}, 5000)
+		}, timeout)
 	}
 
-	loadAllPlaylists () {
-		console.log("load");
+	loadAllPlaylists (cb) {
 		this.state.connection.getAllPlaylists((err, playlists) => {
+			if(err){
+				return cb(err, null);
+			}
 			console.log(err, playlists);
 			let newPlaylists = this.state.playlists;
 			playlists.forEach((playlist) => {
@@ -131,6 +151,7 @@ module.exports = class App extends Component {
 			});
 			console.log(newPlaylists.length, newPlaylists);
 			this.setState({playlists: newPlaylists});
+			return cb(null, 'success');
 		});
 	}
 
@@ -139,7 +160,6 @@ module.exports = class App extends Component {
 
 			let updateAllSongs = this.state.allSongs;
 			let newPlaylists = this.state.playlists;
-
 
 			//Clear the playlist so we can re-render it
 			newPlaylists.set(ampachePlaylistID, new Playlist(ampachePlaylistID, playlistName));
@@ -150,18 +170,19 @@ module.exports = class App extends Component {
 				newPlaylists.get(ampachePlaylistID).pushSingleSongID(song.ID);
 			});
 
-
 			this.setState({allSongs: updateAllSongs, playlists: newPlaylists}, () => {
 				cb(null);
 			});
 		});
 	}
 
-	generateFavorites (cb) {
+	markFavorites (cb) {
 		console.log("FAVVVV");
 		this.state.connection.getPlaylistSongs(999, (err, songs) => {
 
-			console.log(431, err);
+			if(err){
+				return cb(err, null);
+			}
 
 			let updateAllSongs = this.state.allSongs;
 
@@ -171,10 +192,8 @@ module.exports = class App extends Component {
 
 			});
 
-			let newPlaylists = this.state.playlists || [];
-
 			this.setState({allSongs: updateAllSongs}, () => {
-				cb();
+				cb(null, 'success');
 			});
 		});
 	}
@@ -189,6 +208,14 @@ module.exports = class App extends Component {
 		});
 		console.log(renderReady);
 		cb(null, renderReady);
+	}
+
+	renderAlbum (albumID) {
+		this.state.connection.getSongsFromAlbum(albumID, (err, songs) => {
+			this.setState({renderSongs: songs}, () => {
+
+			});
+		});
 	}
 
 	renderFavPlaylist (cb) {
@@ -212,8 +239,8 @@ module.exports = class App extends Component {
 		this.playSongByPlayingIndex(this.state.playingIndex-1);
 	}
 
-	stopPlaying() {
-		if(this.state.isStopped == false) {
+	stopPlaying(cb) {
+		if(this.state.isPlaying) {
 			if(this.state.FLAC) {
 				this.state.playerObject.stop();
 				this.setState({
@@ -224,7 +251,7 @@ module.exports = class App extends Component {
 					playingIndex: -1,
 					playingAmpacheSongId: -1,
 					FLAC: 0
-				});
+				}, ()=>{cb();});
 			}
 			else {
 				this.state.soundHowl.stop();
@@ -237,9 +264,14 @@ module.exports = class App extends Component {
 					playingIndex: -1,
 					playingAmpacheSongId: -1,
 					playingHowlID: -1,
-				});
+				}, ()=>{cb();});
 			}
-
+		}
+		else {
+			if(this.state.isLoading) {
+				Howler.unload(); //TODO: If howler add's a stopAll Loading Global that would be better
+			}
+			cb();
 		}
 	}
 
@@ -292,108 +324,96 @@ module.exports = class App extends Component {
 
 	}
 
-	playSong (AmpacheSongId, URL, playingIndex) {
-		console.log(playingIndex, this.state.isLoading);
+	playSong(AmpacheSongId, URL, playingIndex) {
 
-		if(this.state.isPlaying || this.state.isLoading) {
-			if(this.state.FLAC) {
-				this.state.playerObject.stop();
-			}
-			else {
-				this.state.soundHowl.stop();
-				Howler.unload();
-			}
-		}
+		//Stop playing current songs and once that's done
+		//setState that we are now loading a song and wait for the state to be set
+		this.stopPlaying(() => {
+			this.setState({
+				isLoading: true,
+				loadingAmpacheSongId: AmpacheSongId
+			}, () => {
+				let re = /(?:\.([^.]+))?$/;
 
-		this.setState({
-			isLoading: true,
-			isPlaying: false,
-			isPaused: false,
-			isStopped: true,
-			playingHowlID: -1,
-			playingAmpacheSongId: -1
-		});
+				let ext = re.exec(URL)[1];
 
-		let re = /(?:\.([^.]+))?$/;
-
-		let ext = re.exec(URL)[1];
-
-		console.log(ext);
-
-		if(ext == 'flac') {
-			console.log("FLAC!!!");
-			var player = AV.Player.fromURL(URL);
-			player.preload();
-			player.volume = this.state.volume * 100;
-			player.on('end', () => {
-				console.log("end");
-				this.songIsOver();
-			});
-			player.on('buffer', (percent) => {
-				console.log("Buffer: ", percent);
-			});
-			player.on('ready', () => {
-				console.log("READY");
-				player.play();
-				this.setState({
-					isLoading: false,
-					isPlaying: true,
-					isPaused: false,
-					isStopped: false,
-					playingHowlID: -1,
-					playingIndex: playingIndex,
-					playerObject: player,
-					playingAmpacheSongId: parseInt(AmpacheSongId),
-					FLAC: 1
-				});
-			});
-			player.on('error', (err) => {
-				console.log("err", err)
-			});
-		} else {
-			var sound = new Howl({
-				src: [URL],
-				format: ['mp3'],
-				html5: true,
-				volume: this.state.volume,
-				onend: (e) => {
-					console.log("OVER");
-					this.songIsOver(e);
-				},
-				onload: (e) => {
-					let howlID = sound.play();
-					this.setState({
-						isLoading: false,
-						isPlaying: true,
-						isPaused: false,
-						isStopped: false,
-						playingHowlID: howlID,
-						playingIndex: playingIndex,
-						playingAmpacheSongId: parseInt(AmpacheSongId),
-						FLAC: 0,
-						soundHowl: sound
+				if (ext == 'flac') {
+					console.log("FLAC!!!");
+					var player = AV.Player.fromURL(URL);
+					player.preload();
+					player.volume = this.state.volume * 100;
+					player.on('end', () => {
+						console.log("end");
+						this.songIsOver();
 					});
-				},
-				onloaderror: (e) =>{
-					console.log("onLoadError");
-					this.setState({
-						isLoading: false,
-						isPlaying: false,
-						isPaused: false,
-						isStopped: true,
-						soundHowl: null,
-						playingIndex: -1,
-						playingAmpacheSongId: -1,
-						playingHowlID: -1
+					player.on('buffer', (percent) => {
+						console.log("Buffer: ", percent);
 					});
-					this.showNotificationTop(`Unable to Download Song, Are you Offline?`);
-					Howler.unload();
+					player.on('ready', () => {
+						console.log("READY");
+						player.play();
+						this.setState({
+							isLoading: false,
+							isPlaying: true,
+							isPaused: false,
+							isStopped: false,
+							playingHowlID: -1,
+							playingIndex: playingIndex,
+							playerObject: player,
+							playingAmpacheSongId: parseInt(AmpacheSongId),
+							FLAC: 1
+						});
+					});
+					player.on('error', (err) => {
+						console.log("err", err)
+					});
+				} else {
+					var sound = new Howl({
+						src: [URL],
+						format: ['mp3'],
+						html5: true,
+						volume: this.state.volume,
+						onend: () => {
+							console.log("OVER");
+							this.songIsOver(e);
+						},
+						onload: () => {
+							console.log("Loaded", AmpacheSongId + ":" + this.state.loadingAmpacheSongId);
+							let howlID = sound.play();
+							this.setState({
+								isLoading: false,
+								isPlaying: true,
+								isPaused: false,
+								isStopped: false,
+								playingHowlID: howlID,
+								playingIndex: playingIndex,
+								playingAmpacheSongId: parseInt(AmpacheSongId),
+								loadingAmpacheSongId: -1,
+								FLAC: 0,
+								soundHowl: sound
+							});
+						},
+						onloaderror: () => {
+							console.log("onLoadError");
+							this.setState({
+								isLoading: false,
+								isPlaying: false,
+								isPaused: false,
+								isStopped: true,
+								soundHowl: null,
+								playingIndex: -1,
+								playingAmpacheSongId: -1,
+								loadingAmpacheSongId: -1,
+								playingHowlID: -1
+							});
+							this.showNotificationTop(`Unable to Download Song, Are you Offline?`);
+							Howler.unload();
 
+						}
+					});
 				}
 			});
-		}
-
-
+		});
 	}
 
 
@@ -411,13 +431,13 @@ module.exports = class App extends Component {
 		}
 		else if(this.state.isPaused) {
 			if(this.state.FLAC) {
-                this.state.playerObject.volume = this.state.volume * 100;
-                this.state.playerObject.play();
+				this.state.playerObject.volume = this.state.volume * 100;
+				this.state.playerObject.play();
 
 			}
 			else {
-                this.state.soundHowl.volume(this.state.volume);
-                this.state.soundHowl.play(this.state.playingHowlID);
+				this.state.soundHowl.volume(this.state.volume);
+				this.state.soundHowl.play(this.state.playingHowlID);
 			}
 
 			this.setState({isPlaying: true, isPaused: false, isStopped: false});
@@ -427,23 +447,23 @@ module.exports = class App extends Component {
 	volumeBarChangeEvent (value) {
 		this.setState({volume: value});
 		if(this.state.isPlaying) {
-		    if(this.state.FLAC) {
-                this.state.playerObject.volume = value*100;
-            }
-            else {
-                this.state.soundHowl.volume(value);
-            }
+			if(this.state.FLAC) {
+				this.state.playerObject.volume = value*100;
+			}
+			else {
+				this.state.soundHowl.volume(value);
+			}
 		}
 	}
 
-    songSeekEvent (value) {
-        console.log(value);
-        if(this.state.isPlaying) {
-            let duration = this.state.soundHowl.duration(this.state.playingHowlID);
-            console.log(duration);
-            this.state.soundHowl.seek(value * duration);
-        }
-    }
+	songSeekEvent (value) {
+		console.log(value);
+		if(this.state.isPlaying) {
+			let duration = this.state.soundHowl.duration(this.state.playingHowlID);
+			console.log(duration);
+			this.state.soundHowl.seek(value * duration);
+		}
+	}
 
 	home () {
 		console.log(this.state.playlists);
@@ -517,7 +537,7 @@ module.exports = class App extends Component {
 					<img src='assets/images/settingsCog.png'/>
 				</div>
 			</div>
-		</div>
+		</div>;
 
 		let mainContent =
 			<div className='wrapper'>
@@ -535,11 +555,12 @@ module.exports = class App extends Component {
 										onPlaySong={this.playSong} onFavSong={this.favSong}
 										onAddSongToPlaylist={this.addSongToPlaylist}
 										onRemoveSongFromPlaylist={this.removeSongFromPlaylist}
-										isLoading={this.state.isLoading}/>
+										onRenderAlbum={this.renderAlbum}
+										loadingAmpacheSongId={this.state.loadingAmpacheSongId}/>
 					})}
 				</div>
 
-			</div>
+			</div>;
 
 		return (
 			<div>

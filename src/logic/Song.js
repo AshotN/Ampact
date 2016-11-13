@@ -8,6 +8,7 @@ export class Song {
 
 		this._ampacheID = songArray.id;
 		this._Album = songArray.album.name;
+	  	this._albumID = songArray.album.id;
 		this._Artist = songArray.artist.name;
 		this._Title = songArray.title;
 		this._MIME = songArray.mime;
@@ -22,7 +23,11 @@ export class Song {
 	}
 
 	get Album () {
-		return this._Album
+		return this._Album;
+	}
+
+	get albumID() {
+	  return this._albumID;
 	}
 
 	get Artist () {
