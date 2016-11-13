@@ -101,8 +101,15 @@ class SongRow extends Component  {
 		e.preventDefault(); // Let's stop this event.
 		e.stopPropagation(); // Really this time.
 		if (typeof this.props.onRenderAlbum === 'function') {
-			console.log("AAA");
 			this.props.onRenderAlbum(albumID);
+		}
+	}
+
+	renderArtist (e, artistID){
+		e.preventDefault(); // Let's stop this event.
+		e.stopPropagation(); // Really this time.
+		if (typeof this.props.onRenderArtist === 'function') {
+			this.props.onRenderArtist(artistID);
 		}
 	}
 
@@ -120,7 +127,7 @@ class SongRow extends Component  {
 				onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses} >
 					<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
 					<div className='songTitle'>{this.props.Song.Title}</div>
-					<div className='songArtist'>{this.props.Song.Artist}</div>
+					<div className='songArtist' onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
 					<div className='songAlbum' onClick={(e, ampacheAlbum) => this.renderAlbum(e, this.props.Song.albumID)}>{this.props.Song.Album}</div>
 			</div>
 		);
@@ -133,8 +140,8 @@ SongRow.propTypes = {
 	playingAmpacheSongId: React.PropTypes.number.isRequired,
 	onPlaySong: React.PropTypes.func.isRequired,
 	onFavSong: React.PropTypes.func.isRequired,
-	onRenderAlbum: React.PropTypes.func.isRequired
-
+	onRenderAlbum: React.PropTypes.func.isRequired,
+	onRenderArtist: React.PropTypes.func.isRequired
 };
 
 export default SongRow;

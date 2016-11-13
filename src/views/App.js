@@ -54,6 +54,7 @@ module.exports = class App extends Component {
 		this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
 		this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 		this.renderAlbum = this.renderAlbum.bind(this);
+		this.renderArtist = this.renderArtist.bind(this);
 
 
 		retry({times: 3, interval: 200}, this.connect.bind(this), (err, result) => {
@@ -218,6 +219,14 @@ module.exports = class App extends Component {
 		});
 	}
 
+	renderArtist (artistID) {
+		this.state.connection.getSongsFromArtist(artistID, (err, songs) => {
+			this.setState({renderSongs: songs}, () => {
+
+			});
+		});
+	}
+
 	renderFavPlaylist (cb) {
 		let renderReady = []; // Again needs a better variable name
 		let allSongs = this.state.allSongs;
@@ -251,7 +260,11 @@ module.exports = class App extends Component {
 					playingIndex: -1,
 					playingAmpacheSongId: -1,
 					FLAC: 0
-				}, ()=>{cb();});
+				}, ()=> {
+					if (typeof cb === 'function') {
+						cb();
+					}
+				});
 			}
 			else {
 				this.state.soundHowl.stop();
@@ -264,7 +277,11 @@ module.exports = class App extends Component {
 					playingIndex: -1,
 					playingAmpacheSongId: -1,
 					playingHowlID: -1,
-				}, ()=>{cb();});
+				}, ()=> {
+					if (typeof cb === 'function') {
+						cb();
+					}
+				});
 			}
 		}
 		else {
@@ -556,6 +573,7 @@ module.exports = class App extends Component {
 										onAddSongToPlaylist={this.addSongToPlaylist}
 										onRemoveSongFromPlaylist={this.removeSongFromPlaylist}
 										onRenderAlbum={this.renderAlbum}
+										onRenderArtist={this.renderArtist}
 										loadingAmpacheSongId={this.state.loadingAmpacheSongId}/>
 					})}
 				</div>
