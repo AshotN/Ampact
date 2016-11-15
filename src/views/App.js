@@ -42,6 +42,7 @@ module.exports = class App extends Component {
 			volume: 0.5,
 			topMessage: null,
 			connectionAttempts: 0,
+		  	searchValue: null,
 			FLAC: 0 //Can't wait for native FLAC support, firefox has it already!
 		};
 
@@ -56,7 +57,8 @@ module.exports = class App extends Component {
 		this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 		this.renderAlbum = this.renderAlbum.bind(this);
 		this.renderArtist = this.renderArtist.bind(this);
-
+	  	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
+		this.searchHandle = this.searchHandle.bind(this);
 
 		retry({times: 3, interval: 200}, this.connect.bind(this), (err, result) => {
 			console.log(err, result);
@@ -542,9 +544,27 @@ module.exports = class App extends Component {
 		});
 	}
 
+	closeApplication() {
+	  remote.getCurrentWindow().close();
+	}
+
+	searchBarHandleChange(event) {
+	  this.setState({ 'searchValue': event.target.value });
+	}
+
+	searchHandle(event) {
+	  console.log(event.key);
+	  if(event.key == 'Enter') {
+	    this.state.connection.searchSongs(this.state.searchValue, (err, songs) => {
+	      //TODO: Error handling
+		  this.setState({renderSongs: songs}, () => {
+				//TODO: Error handling
+		  });
+		});
+	  }
+	}
+
 	render() {
-
-
 		let playlists = [];
 		this.state.playlists.forEach((value) => {
 			playlists.push(<button key={value.ID}
@@ -572,8 +592,6 @@ module.exports = class App extends Component {
 
 		let mainContent =
 			<div className='wrapper'>
-
-
 				<div className='headers'>
 					<div className='song'>Song</div>
 					<div className='artist'>Artist</div>
@@ -596,6 +614,12 @@ module.exports = class App extends Component {
 
 		return (
 			<div>
+				<div className='dragBar'>
+				  <input onChange={this.searchBarHandleChange} onKeyPress={this.searchHandle} className='searchBar'></input>
+				  <div onClick={this.closeApplication} className='closeApp'>
+					X
+				  </div>
+				</div>
 				<div className='main'>
 					<Sidebar sidebar={sidebarContent}
 							 open={this.state.sidebarOpen}
@@ -613,7 +637,6 @@ module.exports = class App extends Component {
 						isPaused={this.state.isPaused} isLoading={this.state.isLoading} isPlaying={this.state.isPlaying}
 						soundHowl={this.state.soundHowl} playingHowlID={this.state.playingHowlID}/>
 			</div>
-
 		);
 	}
 }

@@ -287,6 +287,31 @@ export class Ampache {
 		});
 	}
 
+  searchSongs (searchTerm, cb) {
+	console.log(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		var JSONData = JSON.parse(body);
 
+		console.log(JSONData);
+		if(JSONData.error != null) {
+		  var errorCode = JSONData.error.code;
+		  console.log(errorCode);
+		  return cb(errorCode, null);
+		}
+		else {
+		  let songs = [];
+
+		  JSONData.forEach(function(entry) {
+			// console.log(entry.song);
+			let song = new Song(entry.song);
+			songs.push(song);
+		  });
+		  cb(null, songs);
+
+		}
+	  }
+	});
+  }
 
 }
