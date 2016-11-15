@@ -4,6 +4,8 @@
   background-color #252527
   position absolute
 
+
+
   .SettingsTitle
     font-size 24px
     color #CCCCCC
@@ -14,6 +16,18 @@
     border-bottom 1px solid mainColor
     padding 5px
     -webkit-app-region drag
+
+    .closeSettings
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-family: Helvetica;
+      color white
+      font-size 24px
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      &:hover
+        color secondaryColor
 
   .field
     text-align center

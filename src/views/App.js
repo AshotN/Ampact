@@ -14,6 +14,7 @@ import retry from 'async/retry';
 const remote = require('electron').remote;
 const BrowserWindow = remote.BrowserWindow;
 const shortcuts = require('../logic/Shortcuts');
+const storage = require('electron-json-storage');
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -99,14 +100,27 @@ module.exports = class App extends Component {
 
 	connect (cb) {
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
-		this.state.connection = new Ampache('admin', 'password', 'https://ampache.hego.co');
+		storage.has('ampact', (err, hasKey) => {
+		  console.log(err, hasKey);
+		  if(!hasKey){
+			//TODO: Tell user to go setup server details
+		  } else {
+			storage.get('ampact', (err, data) => {
+			  if(err) {
+				//TODO: Proper error handling
+			  }
+			  this.state.connection = new Ampache(data.serverUsername, data.serverPassword, data.serverIP);
 
-		this.state.connection.handshake((err, result) => {
-			if(err) {
+			  this.state.connection.handshake((err, result) => {
+				if(err) {
+				  return cb(err, result);
+				}
 				return cb(err, result);
-			}
-			return cb(err, result);
+			  });
+			});
+		  }
 		});
+
 	}
 
 	renderSongs(cb){

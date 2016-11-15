@@ -36,22 +36,6 @@ export class Ampache {
 		this._authCode = value;
 	}
 
-
-	errorHandler (errorCode, cb) {
-		console.log(errorCode);
-		if(errorCode == 401){
-			this.handshake((err, cb) => {
-				if(err) {
-					cb(false);
-				}
-				else {
-					cb(true);
-				}
-			});
-		}
-	}
-
-
 	handshake (cb) {
 		var time = Math.round((new Date()).getTime() / 1000);
 		const key = crypto.createHash('sha256').update(this.apikey).digest('hex');
@@ -68,15 +52,10 @@ export class Ampache {
 
 				console.log(JSONData);
 
-				if(JSONData.error != null) {
-					var errorCode = JSONData.error.code;
-					this.errorHandler(errorCode, (resolved) => {
-						if(resolved) {
-							removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
-						}
-					});
+				if(JSONData.error) {
+				  return cb(JSONData.error, null);
 				}
-				else if(JSONData.auth != null){
+				else if(JSONData.auth){
 					console.log(JSONData.auth);
 					this.authCode = JSONData.auth;
 					return cb(null, JSONData.auth);
