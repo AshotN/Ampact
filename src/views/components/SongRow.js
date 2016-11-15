@@ -126,9 +126,15 @@ class SongRow extends Component  {
 			<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Song.URL, this.props.Index)}
 				onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses} >
 					<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
-					<div className='songTitle'>{this.props.Song.Title}</div>
-					<div className='songArtist' onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
-					<div className='songAlbum' onClick={(e, ampacheAlbum) => this.renderAlbum(e, this.props.Song.albumID)}>{this.props.Song.Album}</div>
+					<div className='songTitleWrapper'>
+					  <div className='songTitle'>{this.props.Song.Title}</div>
+					</div>
+					<div className='songArtistWrapper'>
+					  <div className='songArtist' onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
+					</div>
+			  		<div className='songAlbumWrapper'>
+					  <div className='songAlbum' onClick={(e, ampacheAlbum) => this.renderAlbum(e, this.props.Song.albumID)}>{this.props.Song.Album}</div>
+					</div>
 			</div>
 		);
 	}

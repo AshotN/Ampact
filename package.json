@@ -16,7 +16,8 @@
     "gulp-if": "^2.0.1",
     "gulp-clean-css": "~2.0.12",
     "gulp-uglify": "~2.0.0",
-    "couleurs": "^6.0.3"
+    "couleurs": "^6.0.3",
+    "stylus": "^0.54.5"
   },
   "dependencies": {
     "async": "^2.1.2",
@@ -33,7 +34,6 @@
     "react-dom": "^15.3.1",
     "react-router": "^2.7.0",
     "react-sidebar": "^2.2.1",
-    "request": "^2.74.0",
-    "stylus": "^0.54.5"
+    "request": "^2.74.0"
   }
 }

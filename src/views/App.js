@@ -575,9 +575,9 @@ module.exports = class App extends Component {
 
 
 				<div className='headers'>
-					<div>Song</div>
-					<div>Artist</div>
-					<div>Album</div>
+					<div className='song'>Song</div>
+					<div className='artist'>Artist</div>
+					<div className='album'>Album</div>
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
@@ -606,7 +606,7 @@ module.exports = class App extends Component {
 						{mainContent}
 					</Sidebar>
 				</div>
-				<div className="debug">Loading:{this.state.isLoading.toString()}:Paused:{this.state.isPaused.toString()}:Playing:{this.state.isPlaying.toString()}:Stopped:{this.state.isStopped.toString()}</div>
+				{/*<div className="debug">Loading:{this.state.isLoading.toString()}:Paused:{this.state.isPaused.toString()}:Playing:{this.state.isPlaying.toString()}:Stopped:{this.state.isStopped.toString()}</div>*/}
 				<Footer onPlayPauseSong={this.playPauseSong} onPreviousSong={this.playPreviousSong}
 						onNextSong={this.songIsOver} onVolumeChange={this.volumeBarChangeEvent}
 						onSeekChange={this.songSeekEvent} isStopped={this.state.isStopped}
