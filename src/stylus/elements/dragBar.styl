@@ -14,8 +14,13 @@
     border: none;
     border-radius: 2px;
     margin: 10px;
-    &:hover
+    transition 0.2s padding
+    &::-webkit-input-placeholder
+      color #4A4A4A
+    &:hover, &:focus
       outline none
+    &:focus
+      padding-right 25px
 
   .closeApp
     color: #ccc;

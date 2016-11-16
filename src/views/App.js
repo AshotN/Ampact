@@ -6,7 +6,7 @@ import { SongRender } from '../logic/SongRender'
 import { Playlist } from '../logic/Playlist'
 import { Howl } from 'howler'
 import Footer from './components/footer'
-// import sidebarContent from './components/SidebarContent'
+import SidebarContent from './components/SidebarContent'
 import classNames from 'classnames';
 import SongRow from './components/SongRow'
 import TopMessage from './components/topMessage'
@@ -26,7 +26,7 @@ module.exports = class App extends Component {
 			transitions: false,
 			connection: null,
 			renderSongs: [],
-			currentView: null, //Consider Removing
+			currentPlaylist: null,
 			playlists: new Map(),
 			allSongs: [],
 			soundHowl: null,
@@ -38,7 +38,7 @@ module.exports = class App extends Component {
 			playerObject: null,
 			loadingAmpacheSongId: -1,
 			playingAmpacheSongId: -1,
-			playingIndex: -1,
+			playingIndex: -1, //TODO: Implement proper Queuing system
 			volume: 0.5,
 			topMessage: null,
 			connectionAttempts: 0,
@@ -59,6 +59,10 @@ module.exports = class App extends Component {
 		this.renderArtist = this.renderArtist.bind(this);
 	  	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 		this.searchHandle = this.searchHandle.bind(this);
+	  	this.home = this.home.bind(this);
+	  	this.favorites = this.favorites.bind(this);
+	 	this.playlist = this.playlist.bind(this);
+
 
 		retry({times: 3, interval: 200}, this.connect.bind(this), (err, result) => {
 			console.log(err, result);
@@ -140,7 +144,7 @@ module.exports = class App extends Component {
 					if(err){
 						return cb(err, null);
 					}
-					this.setState({renderSongs: theSongs, currentView: -1});
+					this.setState({renderSongs: theSongs, currentPlaylist: -1});
 				});
 			});
 		});
@@ -408,7 +412,7 @@ module.exports = class App extends Component {
 						volume: this.state.volume,
 						onend: () => {
 							console.log("OVER");
-							this.songIsOver(e);
+							this.songIsOver();
 						},
 						onload: () => {
 							console.log("Loaded", AmpacheSongId + ":" + this.state.loadingAmpacheSongId);
@@ -500,13 +504,13 @@ module.exports = class App extends Component {
 
 	home () {
 		console.log(this.state.playlists);
-		this.setState({renderSongs: this.state.allSongs, currentView: -1});
+		this.setState({renderSongs: this.state.allSongs, currentPlaylist: -1});
 	}
 
 	favorites () {
 		this.renderFavPlaylist((err, renderOut) => {
 			console.log(renderOut);
-			this.setState({renderSongs: renderOut, currentView: 999});
+			this.setState({renderSongs: renderOut, currentPlaylist: 999});
 		});
 	}
 
@@ -514,7 +518,7 @@ module.exports = class App extends Component {
 	playlist (playlistID, playlistName) {
 		this.generatePlaylist(playlistID, playlistName, (err) => {
 			this.renderPlaylist(playlistID, (err, cb) => {
-				this.setState({renderSongs: cb, currentView: playlistID});
+				this.setState({renderSongs: cb, currentPlaylist: playlistID});
 			});
 		});
 	}
@@ -553,7 +557,6 @@ module.exports = class App extends Component {
 	}
 
 	searchHandle(event) {
-	  console.log(event.key);
 	  if(event.key == 'Enter') {
 	    this.state.connection.searchSongs(this.state.searchValue, (err, songs) => {
 	      //TODO: Error handling
@@ -565,31 +568,6 @@ module.exports = class App extends Component {
 	}
 
 	render() {
-		let playlists = [];
-		this.state.playlists.forEach((value) => {
-			playlists.push(<button key={value.ID}
-								   onClick={(ID, Name) => this.playlist(value.ID, value.Name)}>{value.Name}-{value.ID}</button>);
-		});
-
-		let sidebarContent = <div>
-			<div className='sidebarTitle'>Ampact - {this.state.currentView}</div>
-			<div>
-				<div className='defaultPlaylists'>
-					<button onClick={(e) => this.home(e)}>Home</button>
-					<button onClick={(e) => this.favorites(e)}>Favorites</button>
-				</div>
-				<div className='playlists'>
-					<span className='title'>Playlists</span>
-					{playlists}
-				</div>
-			</div>
-			<div className='settings'>
-				<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-					<img src='assets/images/settingsCog.png'/>
-				</div>
-			</div>
-		</div>;
-
 		let mainContent =
 			<div className='wrapper'>
 				<div className='headers'>
@@ -599,7 +577,7 @@ module.exports = class App extends Component {
 				</div>
 				<div className='songs'>
 					{this.state.renderSongs.map((object, i) => {
-						return <SongRow key={i} Playlists={this.state.playlists} currentView={this.state.currentView}
+						return <SongRow key={i} Playlists={this.state.playlists} currentPlaylist={this.state.currentPlaylist}
 										Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId}
 										onPlaySong={this.playSong} onFavSong={this.favSong}
 										onAddSongToPlaylist={this.addSongToPlaylist}
@@ -615,13 +593,13 @@ module.exports = class App extends Component {
 		return (
 			<div>
 				<div className='dragBar'>
-				  <input onChange={this.searchBarHandleChange} onKeyPress={this.searchHandle} className='searchBar'></input>
+				  <input onChange={this.searchBarHandleChange} onKeyPress={this.searchHandle} placeholder="Search..." className='searchBar' />
 				  <div onClick={this.closeApplication} className='closeApp'>
 					X
 				  </div>
 				</div>
 				<div className='main'>
-					<Sidebar sidebar={sidebarContent}
+					<Sidebar sidebar={<SidebarContent currentPlaylist={this.state.currentPlaylist} playlist={this.playlist} favorites={this.favorites} home={this.home} playlists={this.state.playlists} />}
 							 open={this.state.sidebarOpen}
 							 docked={this.state.docked}
 							 transitions={this.state.transitions}

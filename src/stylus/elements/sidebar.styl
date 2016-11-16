@@ -30,20 +30,23 @@
 			&:hover
 				background-color darken(#28282A, 10%)
 				color: mainColor;
+		.currentPlaylist
+			border-left: 3px solid #ffa500;
+			padding-left: 7px;
 
-	.settings 
+	.settings
 		text-align: center
 		width: 100%
 		position: absolute
 		bottom: 0
-		.cogWrapper 
+		.cogWrapper
 			position: relative
 			width: 100%
 			background-color: #616161
 			padding-top: 5px
 			transition: background-color 0.2s
 
-			&:hover 
+			&:hover
 				background-color: mainColor
 				cursor: pointer
 				transition: background-color 0.2s
@@ -52,7 +55,7 @@
 					transform-origin 50% 50%
 					width 32px
 					height 32px
-			
+
 @keyframes spin1
 	0% {
 		transform rotate(0deg)
