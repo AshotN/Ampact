@@ -21,23 +21,6 @@ class Footer extends Component  {
 		this.onMouseUp = this.onMouseUp.bind(this);
 	}
 	componentDidUpdate(prevProps) {
-		//TODO: Remove third condition when FLAC support becomes native!
-		// if(prevProps.isPlaying == false && this.props.isPlaying && this.props.playingHowlID != -1) {
-		// 	console.log("Start A");
-		// 	this.clearSeekBar();
-		// 	this.startSeekBar();
-		// }else if(prevProps.isPlaying && this.props.isPaused) {
-		// 	console.log("Start C");
-		// 	this.pauseSeekBar();
-		// }else if(prevProps.playingHowlID != this.props.playingHowlID ) {
-		// 	console.log("Start B");
-		// 	this.clearSeekBar();
-		// 	this.startSeekBar();
-		// }else if(this.props.isStopped){
-		// 	console.log("Start C");
-		// 	this.clearSeekBar();
-		// }
-
 		if(prevProps.isLoading && this.props.isPlaying) {
 			this.clearSeekBar();
 			this.startSeekBar();
@@ -46,7 +29,7 @@ class Footer extends Component  {
 		} else if(prevProps.isPaused && this.props.isPlaying){
 			this.startSeekBar();
 		}
-		
+
 	}
 
 
@@ -106,7 +89,7 @@ class Footer extends Component  {
 
 		if (typeof this.props.onPreviousSong === 'function') {
 			this.props.onPreviousSong();
-		}		
+		}
 	}
 
 	nextSong (e) {
@@ -114,7 +97,7 @@ class Footer extends Component  {
 
 		if (typeof this.props.onNextSong === 'function') {
 			this.props.onNextSong();
-		}		
+		}
 	}
 
 	getPosition (e, elementID) {

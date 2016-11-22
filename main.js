@@ -16,9 +16,9 @@ function createWindow () {
   mainWindow.loadURL(`file://${__dirname}/src/index.html`)
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
-  mainWindow.maximize();
+  // mainWindow.maximize();
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Component } from 'react'
 const remote = require('electron').remote;
 const Menu = remote.Menu;
@@ -92,8 +93,10 @@ class SongRow extends Component  {
 	}
 
 	playSong (AmpacheSongId, URL, playingIndex) {
-		if (typeof this.props.onPlaySong === 'function') {
-			this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
+	  console.log("A", this.context);
+		if (typeof this.context.onPlaySong === 'function') {
+		  console.log("B");
+		  this.context.onPlaySong(AmpacheSongId, URL, playingIndex);
 		}
 	}
 
@@ -141,13 +144,18 @@ class SongRow extends Component  {
 }
 
 SongRow.propTypes = {
-	Song: React.PropTypes.object.isRequired,
-	Index: React.PropTypes.number.isRequired,
-	playingAmpacheSongId: React.PropTypes.number.isRequired,
-	onPlaySong: React.PropTypes.func.isRequired,
-	onFavSong: React.PropTypes.func.isRequired,
-	onRenderAlbum: React.PropTypes.func.isRequired,
-	onRenderArtist: React.PropTypes.func.isRequired
+	// Song: React.PropTypes.object.isRequired,
+	// Index: React.PropTypes.number.isRequired,
+	// playingAmpacheSongId: React.PropTypes.number.isRequired,
+	// onPlaySong: React.PropTypes.func.isRequired,
+	// onFavSong: React.PropTypes.func.isRequired,
+	// onRenderAlbum: React.PropTypes.func.isRequired,
+	// onRenderArtist: React.PropTypes.func.isRequired
+};
+
+// Access parent context by defining contextTypes
+SongRow.contextTypes = {
+  onPlaySong: React.PropTypes.func
 };
 
 export default SongRow;

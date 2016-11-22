@@ -16,7 +16,7 @@ export class Song {
 		this._Bitrate = songArray.bitrate;
 		this._URL = songArray.url;
 		this._Favorite = false;
-		this._PlaylistTrackNumber = -1;
+		this._PlaylistTrackNumber = songArray.playlisttrack;
 	}
 
 	get ID () {

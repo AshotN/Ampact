@@ -182,19 +182,19 @@ export class Ampache {
 		console.log(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`);
 		request(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`, (error, response, body) => {
 			if (!error && response.statusCode == 200) {
-				var JSONData = JSON.parse(body);
+				let JSONData = JSON.parse(body);
 
 				if(JSONData.error != null) {
-					var errorCode = JSONData.error.code;
-					console.log(errorCode);
-					return cb(errorCode, null);
+				  let errorCode = JSONData.error.code;
+				  console.log(errorCode);
+				  return cb(errorCode, null);
 				}
 				else {
 
 					let playlists = [];
 					JSONData.forEach((playlist) => {
 						let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name);
-						playlists.push(ourPlaylist);
+						playlists[playlist.playlist.id] = (ourPlaylist);
 					});
 					cb(null, playlists);
 
@@ -224,10 +224,11 @@ export class Ampache {
 					let songs = [];
 
 					JSONData.forEach(function(entry) {
-						// console.log(entry.song);
+						console.log(entry.song);
 						let song = new Song(entry.song);
-						song.PlaylistTrackNumber = entry.song.playlisttrack;
-						songs.push(song);
+						// song.PlaylistTrackNumber = entry.song.playlisttrack;
+						console.log(song);
+					  songs.push(song);
 					});
 					cb(null, songs);
 

@@ -12,9 +12,20 @@ import SongRow from './components/SongRow'
 import TopMessage from './components/topMessage'
 import retry from 'async/retry';
 const remote = require('electron').remote;
-const BrowserWindow = remote.BrowserWindow;
 const shortcuts = require('../logic/Shortcuts');
 const storage = require('electron-json-storage');
+import PlaylistView from './components/PlaylistView/index';
+import {Router, IndexRoute, Route, browserHistory} from 'react-router';
+
+
+const routes = (
+	<Router history={browserHistory}>
+	  <Route path="/">
+		<IndexRoute component={PlaylistView} />
+	  </Route>
+	  {/*<Route path="*" component={NoMatch} />*/}
+	</Router>
+)
 
 module.exports = class App extends Component {
 	constructor (props) {
@@ -92,17 +103,6 @@ module.exports = class App extends Component {
 	}
 
 
-	openSettings (e) {
-		var left = (screen.width/2);
-		var top = (screen.height/2);
-
-		let win = new BrowserWindow({width: 400, height: 500, x: left, y: top, frame: false, alwaysOnTop: true, resizable: false, show: false, backgroundColor: '#0E0E0E'});
-
-		win.loadURL(`file://${__dirname}/../settings.html`);
-		win.once('ready-to-show', () => {
-			win.show();
-		});
-	}
 
 	connect (cb) {
 		// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
@@ -126,7 +126,6 @@ module.exports = class App extends Component {
 			});
 		  }
 		});
-
 	}
 
 	renderSongs(cb){
@@ -177,7 +176,8 @@ module.exports = class App extends Component {
 	}
 
 	generatePlaylist (ampachePlaylistID, playlistName, cb) {
-		this.state.connection.getPlaylistSongs(ampachePlaylistID, (err, songs) => {
+	  this.state.connection.getPlaylistSongs(ampachePlaylistID, (err, songs) => {
+		console.log("Generate", songs);
 
 			let updateAllSongs = this.state.allSongs;
 			let newPlaylists = this.state.playlists;
@@ -567,6 +567,13 @@ module.exports = class App extends Component {
 	  }
 	}
 
+  render() {
+	  console.log("RENDER!?");
+	  return(
+	  	{routes}
+	  );
+	}
+
 	render() {
 		let mainContent =
 			<div className='wrapper'>
@@ -576,16 +583,6 @@ module.exports = class App extends Component {
 					<div className='album'>Album</div>
 				</div>
 				<div className='songs'>
-					{this.state.renderSongs.map((object, i) => {
-						return <SongRow key={i} Playlists={this.state.playlists} currentPlaylist={this.state.currentPlaylist}
-										Index={i} Song={object} playingAmpacheSongId={this.state.playingAmpacheSongId}
-										onPlaySong={this.playSong} onFavSong={this.favSong}
-										onAddSongToPlaylist={this.addSongToPlaylist}
-										onRemoveSongFromPlaylist={this.removeSongFromPlaylist}
-										onRenderAlbum={this.renderAlbum}
-										onRenderArtist={this.renderArtist}
-										loadingAmpacheSongId={this.state.loadingAmpacheSongId}/>
-					})}
 				</div>
 
 			</div>;
@@ -617,4 +614,5 @@ module.exports = class App extends Component {
 			</div>
 		);
 	}
+
 }

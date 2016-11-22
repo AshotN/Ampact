@@ -2,11 +2,11 @@
 
 require('babel-register');
 
-var React = require('react');
-var render = require('react-dom').render;
-var App = require('./views/App');
-
-render(
-  React.createElement(App),
-  document.getElementById('root')
-);
+const React = require('react');
+const render = require('react-dom').render;
+// const App = require('./views/App');
+require('./views/router')
+// render(
+//   React.createElement(App),
+//   document.getElementById('root')
+// );
