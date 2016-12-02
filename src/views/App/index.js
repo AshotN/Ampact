@@ -1,12 +1,12 @@
 import React from 'react';
-import Sidebar from 'react-sidebar'
+import Sidebar from 'react-sidebar';
 import retry from 'async/retry';
-const storage = require('electron-json-storage');
-import {Ampache} from '../logic/Ampache'
-import {Howl} from 'howler'
+import storage from 'electron-json-storage';
+import { Ampache } from '../../logic/Ampache';
+import { Howl } from 'howler';
 
-import Footer from './components/footer';
-import SidebarContent from './components/SidebarContent'
+import Footer from '../../components/Footer';
+import SidebarContent from '../../components/SidebarContent';
 
 export default class App extends React.Component {
   constructor(props) {
