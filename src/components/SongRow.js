@@ -34,13 +34,13 @@ class SongRow extends Component  {
 
 		let that = this;
 
-		console.log(this.props.Playlists);
+		console.log(this.context.allPlaylists);
 
 		let addToPlaylistEntry = [
 
 
 		];
-		this.props.Playlists.forEach((Playlist, ID) => {
+		this.context.allPlaylists.forEach((Playlist, ID) => {
 			let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
 			addToPlaylistEntry.push({
 					label: Playlist.Name,
@@ -70,9 +70,10 @@ class SongRow extends Component  {
 			},
 			{
 				label: 'Remove From This Playlist',
-				enabled: this.props.currentView != -1 && this.props.currentView != 999,
+				enabled: that.props.currentPlaylistID != -1 && that.props.currentPlaylistID != 999,
 				click () {
-					that.handlePlaylist(Song, that.props.Playlists.get(that.props.currentView), true);
+				  console.log(that.props.currentPlaylistID);
+					that.handlePlaylist(Song, that.context.allPlaylists[that.props.currentPlaylistID], true);
 				}
 			}
 		];
@@ -84,11 +85,11 @@ class SongRow extends Component  {
 
 	handlePlaylist (Song, Playlist, inPlaylist) {
 		console.log(Playlist, inPlaylist);
-		if (!inPlaylist && typeof this.props.onAddSongToPlaylist === 'function') {
-			this.props.onAddSongToPlaylist(Song.ID, Playlist);
+		if (!inPlaylist && typeof this.context.onAddSongToPlaylist === 'function') {
+			this.context.onAddSongToPlaylist(Song.ID, Playlist);
 		}
-		else if (inPlaylist && typeof this.props.onRemoveSongFromPlaylist === 'function') {
-			this.props.onRemoveSongFromPlaylist(Song, Playlist);
+		else if (inPlaylist && typeof this.context.onRemoveSongFromPlaylist === 'function') {
+			this.context.onRemoveSongFromPlaylist(Song, Playlist);
 		}
 	}
 
@@ -155,7 +156,10 @@ SongRow.propTypes = {
 
 // Access parent context by defining contextTypes
 SongRow.contextTypes = {
-  onPlaySong: React.PropTypes.func
+  onPlaySong: React.PropTypes.func,
+  allPlaylists: React.PropTypes.array,
+  onAddSongToPlaylist: React.PropTypes.func,
+  onRemoveSongFromPlaylist: React.PropTypes.func
 };
 
 export default SongRow;

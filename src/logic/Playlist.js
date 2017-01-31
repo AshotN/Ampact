@@ -23,9 +23,9 @@ export class Playlist {
 		return this._songs
 	}
 
-	set Songs (arrayOfSongIds) {
+	set Songs (arrayOfSongIDs) {
 		//TODO: Validation
-		this._songs = arrayOfSongs;
+		this._songs = arrayOfSongIDs;
 	}
 
 	pushSingleSongID (songID) {

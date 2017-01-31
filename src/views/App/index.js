@@ -2,11 +2,16 @@ import React from 'react';
 import Sidebar from 'react-sidebar';
 import retry from 'async/retry';
 import storage from 'electron-json-storage';
-import { Ampache } from '../../logic/Ampache';
-import { Howl } from 'howler';
+import {Ampache} from '../../logic/Ampache';
+import {Howl} from 'howler';
+import _ from 'lodash'
+
+const remote = require('electron').remote;
 
 import Footer from '../../components/Footer';
 import SidebarContent from '../../components/SidebarContent';
+import TopMessage from '../../components/topMessage';
+
 
 export default class App extends React.Component {
   constructor(props) {
@@ -18,6 +23,8 @@ export default class App extends React.Component {
 	  transitions: false,
 	  allSongs: [],
 	  allPlaylists: [],
+	  allAlbums: [],
+	  albumsForHome: [],
 	  soundHowl: null,
 	  isLoading: false,
 	  isPlaying: false,
@@ -30,7 +37,8 @@ export default class App extends React.Component {
 	  loadingAmpacheSongId: -1,
 	  playingAmpacheSongId: -1,
 	  FLAC: 0,
-	  searchValue: null
+	  searchValue: null,
+	  topMessage: null
 	};
 
 	this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
@@ -43,6 +51,8 @@ export default class App extends React.Component {
 	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 	this.searchHandle = this.searchHandle.bind(this);
+	this.updatePlaylist = this.updatePlaylist.bind(this);
+
 
 	retry({times: 3, interval: 200}, this.connectToServer.bind(this), (err, result) => {
 	  console.log(err, result);
@@ -57,6 +67,15 @@ export default class App extends React.Component {
 		  console.error("There was a problem fetching the playlists", err);
 		  return;
 		}
+		retry({times: 3, interval: 200}, this.state.connection.getAllAlbums, (err, result) => {
+		  if (err) {
+			this.showNotificationTop("There was a problem fetching the albums");
+			console.error("There was a problem fetching the albums", err);
+			return;
+		  }
+
+		  this.setState({allAlbums: result, albumsForHome: _.sampleSize(result,5)});
+		});
 		retry({times: 3, interval: 200}, this.getAllSongs.bind(this), (err, result) => {
 		  if (err) {
 			this.showNotificationTop("There was a problem fetching the songs");
@@ -70,11 +89,10 @@ export default class App extends React.Component {
 	this.playSong = this.playSong.bind(this);
   }
 
-  showNotificationTop (message, timeout = 5000) {
+  showNotificationTop(message, timeout = 5000) {
 	this.setState({topMessage: message});
 
-	setTimeout(() =>
-	{
+	setTimeout(() => {
 	  this.setState({topMessage: null});
 	}, timeout)
   }
@@ -122,6 +140,37 @@ export default class App extends React.Component {
 	  this.setState({allPlaylists: playlists});
 	  return cb(null, 'success');
 	});
+  }
+
+  getAllAlbums(cb) {
+	this.state.connection.getAllAlbums((err, albums) => {
+	  if (err) {
+		return cb(err, null);
+	  }
+	  let theAlbums = [];
+	  albums.forEach((album) => {
+		theAlbums[album.ID] = album;
+	  });
+
+	  // this.setState({allAlbums: theAlbums});
+	  cb(albums);
+	});
+  }
+
+  updatePlaylist(playlistID, cb) {
+    let allPlaylists = this.state.allPlaylists;
+	this.state.connection.getPlaylistSongs(playlistID, (err, songs) => {
+	  if (err) {
+		return cb(err, result);
+	  }
+	  allPlaylists[playlistID].Songs = [];
+	  songs.forEach((song) => {
+		allPlaylists[playlistID].pushSingleSongID(song.ID);
+	  });
+	});
+	console.log(allPlaylists);
+	this.setState({allPlaylists: allPlaylists});
+	return cb(null, 'success');
   }
 
   playPauseSong() {
@@ -258,10 +307,10 @@ export default class App extends React.Component {
   }
 
   //**** you Javascript and your lack of overloading!
-  playSongByPlayingIndex (playingIndex) {
-	console.log("Play: "+playingIndex);
+  playSongByPlayingIndex(playingIndex) {
+	console.log("Play: " + playingIndex);
 	let ourNewSong = this.state.allSongs[playingIndex];
-	if(ourNewSong === undefined) {
+	if (ourNewSong === undefined) {
 	  return this.stopPlaying();
 	}
 	this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
@@ -349,7 +398,7 @@ export default class App extends React.Component {
 		//TODO: HANDLE ERRORS!
 		return false;
 	  }
-	  this.state.playlists.get(Playlist.ID).pushSingleSongID(AmpacheSongID);
+	  this.state.allPlaylists[Playlist.ID].pushSingleSongID(AmpacheSongID);
 	});
   }
 
@@ -360,16 +409,20 @@ export default class App extends React.Component {
 		//TODO: HANDLE ERRORS!
 		return false;
 	  }
-	  this.playlist(Playlist.ID, Playlist.Name);
+	  this.context.router.push(`/playlist/${Playlist.ID}`);
 	});
   }
 
+  closeApplication() {
+	remote.getCurrentWindow().close();
+  }
+
   searchBarHandleChange(event) {
-	this.setState({ 'searchValue': event.target.value });
+	this.setState({'searchValue': event.target.value});
   }
 
   searchHandle(event) {
-	if(event.key == 'Enter') {
+	if (event.key == 'Enter') {
 	  //TODO: Make a search page view
 	}
   }
@@ -379,7 +432,13 @@ export default class App extends React.Component {
 	return {
 	  allSongs: this.state.allSongs,
 	  allPlaylists: this.state.allPlaylists,
-	  onPlaySong: this.playSong
+	  albumsForHome: this.state.albumsForHome,
+	  onPlaySong: this.playSong,
+	  playingAmpacheSongId: this.state.playingAmpacheSongId,
+	  loadingAmpacheSongId: this.state.loadingAmpacheSongId,
+	  onAddSongToPlaylist: this.addSongToPlaylist,
+	  onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
+	  updatePlaylist: this.updatePlaylist
 	};
   }
 
@@ -400,7 +459,7 @@ export default class App extends React.Component {
 					 docked={this.state.docked}
 					 transitions={this.state.transitions}
 					 sidebarClassName='sidebar'>
-			  {/*<TopMessage Message={this.state.topMessage}/>*/}
+			  <TopMessage Message={this.state.topMessage}/>
 			  { this.props.children }
 			</Sidebar>
 		  </div>
@@ -419,5 +478,15 @@ export default class App extends React.Component {
 App.childContextTypes = {
   allSongs: React.PropTypes.array,
   allPlaylists: React.PropTypes.array,
-  onPlaySong: React.PropTypes.func
+  albumsForHome: React.PropTypes.array,
+  onPlaySong: React.PropTypes.func,
+  playingAmpacheSongId: React.PropTypes.number,
+  loadingAmpacheSongId: React.PropTypes.number,
+  onAddSongToPlaylist: React.PropTypes.func,
+  onRemoveSongFromPlaylist: React.PropTypes.func,
+  updatePlaylist: React.PropTypes.func
 };
+
+App.contextTypes = {
+  router: React.PropTypes.object.isRequired
+}

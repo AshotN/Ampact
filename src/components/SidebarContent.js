@@ -17,12 +17,6 @@ class SidebarContent extends Component {
 	// this.fetchPlaylists();
   }
 
-  fetchPlaylists() {
-	this.props.serverConnection.getAllPlaylists((err, playlists) => {
-	  console.log(playlists);
-	});
-  }
-
   openSettings(e) {
 	let left = (screen.width / 2);
 	let top = (screen.height / 2);
@@ -39,7 +33,7 @@ class SidebarContent extends Component {
 	  backgroundColor: '#0E0E0E'
 	});
 
-	win.loadURL(`file://${__dirname}/../../settings.html`);
+	win.loadURL(`file://${__dirname}/../settings.html`);
 	win.once('ready-to-show', () => {
 	  win.show();
 	});
@@ -73,16 +67,16 @@ class SidebarContent extends Component {
 			  <span className='title'>Playlists</span>
 			  {this.props.allPlaylists.map((object, i) => {
 				console.log(i, object);
-				return <Link to={{pathname: '/playlist', state: {renderPlaylistID: object.ID}}}>
+				return <Link key={object.ID} to={{pathname: `/playlist/${object.ID}`}}>
 				  <button className='playlistButton' key={object.ID}>{object.Name} - {object.ID}</button>
 				</Link>;
 			  })};
 			</div>
 		  </div>
 		  <div className='settings'>
-			{/*<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>*/}
-			{/*<img src='assets//images//settingsCog.png'/>*/}
-			{/*</div>*/}
+			<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
+			  <img src='assets//images//settingsCog.png'/>
+			</div>
 		  </div>
 		</div>
 	);
