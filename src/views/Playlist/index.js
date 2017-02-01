@@ -27,6 +27,22 @@ export default class PlaylistView extends React.Component {
   }
 
   render() {
+	let songRows = [];
+
+	let i = 0;
+	this.props.allPlaylists.get(parseInt(this.props.routeParams.playlistID)).Songs.forEach((playlistTrackID, songID) => {
+	  let theSong = this.props.allSongs.get(songID);
+	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
+					  currentPlaylist={this.state.currentPlaylist}
+					  Index={i} Song={theSong}
+					  playingAmpacheSongId={this.props.playingAmpacheSongId}
+					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
+					  currentPlaylistID={this.props.routeParams.playlistID}
+					  onPlaySong={this.props.onPlaySong}
+					  onAddSongToPlaylist={this.props.onAddSongToPlaylist}
+					  onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
+	  i++;
+	});
 	return (
 		<div className='wrapper'>
 		  <div className='headers'>
@@ -35,19 +51,7 @@ export default class PlaylistView extends React.Component {
 			<div className='album'>Album</div>
 		  </div>
 		  <div className='songs'>
-			{
-			  this.props.allPlaylists[this.props.routeParams.playlistID].Songs.map((songID, index) => {
-				let theSong = this.props.allSongs[songID];
-				return <SongRow key={index} Playlists={this.props.allPlaylists}
-								currentPlaylist={this.state.currentPlaylist}
-								Index={index} Song={theSong}
-								playingAmpacheSongId={this.props.playingAmpacheSongId}
-								loadingAmpacheSongId={this.props.loadingAmpacheSongId}
-								currentPlaylistID={this.props.routeParams.playlistID}
-								onPlaySong={this.props.onPlaySong}
-								onAddSongToPlaylist={this.props.addSongToPlaylist}
-								onRemoveSongFromPlaylist={this.props.removeSongFromPlaylist}/>
-			  })}
+			{songRows}
 		  </div>
 		</div>
 	);
@@ -55,8 +59,8 @@ export default class PlaylistView extends React.Component {
 };
 // Verify Prop Types
 PlaylistView.propTypes = {
-  allSongs: React.PropTypes.array,
-  allPlaylists: React.PropTypes.array,
+  allSongs: React.PropTypes.object,
+  allPlaylists: React.PropTypes.object,
   onPlaySong: React.PropTypes.func,
   playingAmpacheSongId: React.PropTypes.number,
   loadingAmpacheSongId: React.PropTypes.number,

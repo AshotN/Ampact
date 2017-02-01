@@ -92,13 +92,14 @@ export class Ampache {
 		  return cb(errorCode, null);
 		}
 		else {
-		  let albums = [];
+		  let albums = new Map();
 
 		  JSONData.forEach(function (entry) {
 			console.log(entry);
 			let album = new Album(entry.album);
-			albums.push(album);
+			albums.set(parseInt(album.ID), album);
 		  });
+		  console.log(albums);
 		  cb(null, albums);
 
 		}
@@ -117,11 +118,11 @@ export class Ampache {
 		  return cb(errorCode, null);
 		}
 		else {
-		  let songs = [];
+		  let songs = new Map();
 
 		  JSONData.forEach(function (entry) {
 			let song = new Song(entry.song);
-			songs.push(song);
+			songs.set(parseInt(song.ID), song);
 		  });
 		  cb(null, songs);
 
@@ -130,6 +131,7 @@ export class Ampache {
 	});
   }
 
+  //TODO: Update to Maps instead of Arrays
   getSongsFromAlbum(albumID, cb) {
 	console.log(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
@@ -157,6 +159,7 @@ export class Ampache {
 	});
   }
 
+  //TODO: Update to Maps instead of Arrays
   getSongsFromArtist(artistID, cb) {
 	console.log(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`, (error, response, body) => {
@@ -222,10 +225,10 @@ export class Ampache {
 		}
 		else {
 
-		  let playlists = [];
+		  let playlists = new Map();
 		  JSONData.forEach((playlist) => {
 			let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name);
-			playlists[playlist.playlist.id] = (ourPlaylist);
+			playlists.set(parseInt(playlist.playlist.id), ourPlaylist);
 		  });
 		  cb(null, playlists);
 
@@ -264,12 +267,7 @@ export class Ampache {
 		var JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
-		  this.errorHandler(errorCode, (resolved) => {
-			if (resolved) {
-			  this.removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
-			}
-		  });
+
 		}
 		else {
 
@@ -297,12 +295,7 @@ export class Ampache {
 		var JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
-		  this.errorHandler(errorCode, (resolved) => {
-			if (resolved) {
-			  this.addSongToPlaylist(playListID, PlaylistTrackNumber, cb);
-			}
-		  });
+		  //TODO: ERROR HANDLING
 		}
 		else {
 
@@ -322,12 +315,8 @@ export class Ampache {
 		var JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
-		  this.errorHandler(errorCode, (resolved) => {
-			if (resolved) {
-			  this.removeSongFromPlaylist(playListID, PlaylistTrackNumber, cb);
-			}
-		  });
+		  //TODO: ERROR HANDLING
+		  console.err(err);
 		}
 		else {
 
@@ -340,6 +329,7 @@ export class Ampache {
 	});
   }
 
+  //TODO: Update to Maps instead of Arrays
   searchSongs(searchTerm, cb) {
 	console.log(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`, (error, response, body) => {

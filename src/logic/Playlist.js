@@ -8,7 +8,7 @@ export class Playlist {
 
 		this._ampachePlaylistID = ampachePlaylistID;
 		this._name = Name;
-		this._songs = [];
+		this._songs = new Map();
 	}
 
 	get ID () {
@@ -23,13 +23,21 @@ export class Playlist {
 		return this._songs
 	}
 
-	set Songs (arrayOfSongIDs) {
-		//TODO: Validation
-		this._songs = arrayOfSongIDs;
+	clearSongs () {
+	  this._songs = new Map();
 	}
 
-	pushSingleSongID (songID) {
-		this._songs.push(songID);
+	// set Songs (arrayOfSongIDs) {
+	// 	//TODO: Validation
+	// 	this._songs = arrayOfSongIDs;
+	// }
+
+	pushSingleSong (songID, trackID) {
+		this._songs.set(songID, trackID);
+	}
+
+	removeSingleSong(songID) {
+	  this._songs.delete(songID);
 	}
 
 

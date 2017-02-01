@@ -52,6 +52,15 @@ class SidebarContent extends Component {
 	// let homeClasses = classNames('homeButton', {'currentPlaylist': this.props.currentPlaylist == -1});
 	// let favoriteClasses = classNames('favoriteButton', {'currentPlaylist': this.props.currentPlaylist == 999});
 
+	let playlistButtons = [];
+
+	this.props.allPlaylists.forEach((object, i) => {
+	  console.log(i, object);
+	  playlistButtons.push(<Link key={object.ID} to={{pathname: `/playlist/${object.ID}`}}>
+		<button className='playlistButton' key={object.ID}>{object.Name} - {object.ID}</button>
+	  </Link>);
+	});
+
 	console.log(this.props.allPlaylists);
 	return (
 		<div>
@@ -65,12 +74,7 @@ class SidebarContent extends Component {
 			</div>
 			<div className='playlists'>
 			  <span className='title'>Playlists</span>
-			  {this.props.allPlaylists.map((object, i) => {
-				console.log(i, object);
-				return <Link key={object.ID} to={{pathname: `/playlist/${object.ID}`}}>
-				  <button className='playlistButton' key={object.ID}>{object.Name} - {object.ID}</button>
-				</Link>;
-			  })};
+			  {playlistButtons}
 			</div>
 		  </div>
 		  <div className='settings'>

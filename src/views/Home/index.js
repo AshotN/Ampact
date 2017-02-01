@@ -4,10 +4,18 @@ export default class HomeView extends React.Component {
 
   constructor(props) {
 	super(props);
+	console.log(typeof this.props.albumsForHome)
   }
 
   render() {
-	console.log(this.props);
+    let AlbumDisplays = [];
+	this.props.albumsForHome.forEach((album, index) => {
+	  console.log(index, album);
+	  if(album !== undefined) {
+		AlbumDisplays.push(<AlbumDisplay Album={album} key={index}/>);
+	  }
+	});
+	console.log(this.props.albumsForHome);
 	return (
 		<div>
 		  <div className='center'>Home</div>
@@ -18,11 +26,7 @@ export default class HomeView extends React.Component {
 		  <div>
 			<div className='center albumTitle'>Albums</div>
 			<div className='albumDisplayContainer'>
-			  {
-				this.props.albumsForHome.map((album, index) => {
-				  return <AlbumDisplay Album={album} key={index}/>
-				})
-			  }
+			  {AlbumDisplays};
 			</div>
 		  </div>
 		</div>
@@ -31,6 +35,6 @@ export default class HomeView extends React.Component {
 }
 // Verify Prop Types
 HomeView.propTypes = {
-  albumsForHome: React.PropTypes.array
+  albumsForHome: React.PropTypes.object
 };
 

@@ -12,6 +12,7 @@ import Footer from '../../components/Footer';
 import SidebarContent from '../../components/SidebarContent';
 import TopMessage from '../../components/topMessage';
 
+import renderIf from '../../assets/scripts/renderif'
 
 export default class App extends React.Component {
   constructor(props) {
@@ -21,10 +22,10 @@ export default class App extends React.Component {
 	  sidebarOpen: true,
 	  docked: true,
 	  transitions: false,
-	  allSongs: [],
-	  allPlaylists: [],
-	  allAlbums: [],
-	  albumsForHome: [],
+	  allSongs: new Map(),
+	  allPlaylists: new Map(),
+	  allAlbums: new Map(),
+	  albumsForHome: new Map(),
 	  soundHowl: null,
 	  isLoading: false,
 	  isPlaying: false,
@@ -38,7 +39,8 @@ export default class App extends React.Component {
 	  playingAmpacheSongId: -1,
 	  FLAC: 0,
 	  searchValue: null,
-	  topMessage: null
+	  topMessage: null,
+	  noCredentials: false
 	};
 
 	this.volumeBarChangeEvent = this.volumeBarChangeEvent.bind(this);
@@ -73,8 +75,14 @@ export default class App extends React.Component {
 			console.error("There was a problem fetching the albums", err);
 			return;
 		  }
-
-		  this.setState({allAlbums: result, albumsForHome: _.sampleSize(result,5)});
+		  let randomAlbums = new Map();
+		  for(let i = 0; i < 5; i++) {
+			let randomNum = Math.floor((Math.random() * result.size) + 1);
+			console.log(randomNum, result.get(randomNum));
+			randomAlbums.set(i, result.get(randomNum));
+		  }
+		  console.log('asdfdsafasdaf', result, randomAlbums);
+		  this.setState({allAlbums: result, albumsForHome: randomAlbums});
 		});
 		retry({times: 3, interval: 200}, this.getAllSongs.bind(this), (err, result) => {
 		  if (err) {
@@ -102,7 +110,7 @@ export default class App extends React.Component {
 	storage.has('ampact', (err, hasKey) => {
 	  console.log(err, hasKey);
 	  if (!hasKey) {
-		//TODO: Tell user to go setup server details
+		this.setState({noCredentials: true});
 	  } else {
 		storage.get('ampact', (err, data) => {
 		  if (err) {
@@ -126,17 +134,19 @@ export default class App extends React.Component {
   fetchPlaylists(cb) {
 	this.state.connection.getAllPlaylists((err, playlists) => {
 	  console.log(err, playlists);
-	  playlists.forEach((playlist) => {
-		this.state.connection.getPlaylistSongs(playlist.ID, (err, songs) => {
+	  let allPlaylistsTemp = new Map(playlists);
+	  allPlaylistsTemp.forEach((Playlist) => {
+		this.state.connection.getPlaylistSongs(Playlist.ID, (err, songs) => {
 		  if (err) {
 			return cb(err, result);
 		  }
 		  songs.forEach((song) => {
-			playlist.pushSingleSongID(song.ID);
+			allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(song.ID, 432);
 		  });
+		  console.log("AAAAAAAAAAAAAAAA");
 		});
 	  });
-	  console.log(playlists);
+	  console.log("BBBBBBBBBBBBBBb");
 	  this.setState({allPlaylists: playlists});
 	  return cb(null, 'success');
 	});
@@ -158,15 +168,18 @@ export default class App extends React.Component {
   }
 
   updatePlaylist(playlistID, cb) {
+    playlistID = parseInt(playlistID);
     let allPlaylists = this.state.allPlaylists;
 	this.state.connection.getPlaylistSongs(playlistID, (err, songs) => {
 	  if (err) {
 		return cb(err, result);
 	  }
-	  console.log(this.state);
-	  allPlaylists[playlistID].Songs = [];
+	  allPlaylists.get(playlistID).clearSongs();
 	  songs.forEach((song) => {
-		allPlaylists[playlistID].pushSingleSongID(song.ID);
+		console.log(allPlaylists, allPlaylists.get(playlistID));
+		let allPlaylistsTemp = this.state.allPlaylists;
+		allPlaylistsTemp.get(parseInt(playlistID)).pushSingleSong(song.ID, song.PlaylistTrackNumber);
+		this.setState({allPlaylists: allPlaylistsTemp});
 	  });
 	});
 	console.log(allPlaylists);
@@ -206,16 +219,18 @@ export default class App extends React.Component {
 	  if (err) {
 		return cb(err, null);
 	  }
-	  let theSongs = [];
+	  let theSongs = new Map();
 	  songs.forEach((song) => {
-		theSongs[song.ID] = song;
+		theSongs.set(song.ID, song);
 	  });
-
+		console.log('allsongs', theSongs);
 	  this.setState({allSongs: theSongs});
 	});
   }
 
-  playSong(AmpacheSongId, URL, playingIndex) {
+  playSong(AmpacheSongId, playingIndex) {
+
+    let URL = this.state.allSongs.get(AmpacheSongId).URL;
 
 	//Stop playing current songs and once that's done
 	//setState that we are now loading a song and wait for the state to be set
@@ -241,7 +256,7 @@ export default class App extends React.Component {
 			console.log("Buffer: ", percent);
 		  });
 		  player.on('ready', () => {
-			console.log("READY");
+			console.log("READY", playingIndex);
 			player.play();
 			this.setState({
 			  isLoading: false,
@@ -309,12 +324,11 @@ export default class App extends React.Component {
 
   //**** you Javascript and your lack of overloading!
   playSongByPlayingIndex(playingIndex) {
-	console.log("Play: " + playingIndex);
-	let ourNewSong = this.state.allSongs[playingIndex];
+	let ourNewSong = this.state.allSongs.get(playingIndex);
 	if (ourNewSong === undefined) {
 	  return this.stopPlaying();
 	}
-	this.playSong(ourNewSong.ID, ourNewSong.URL, playingIndex)
+	this.playSong(ourNewSong.ID, playingIndex)
   }
 
   stopPlaying(cb) {
@@ -365,6 +379,7 @@ export default class App extends React.Component {
 
   playNextSong() {
 	//Play the next song by order - A WIP
+	console.log(this.state.playingIndex);
 	this.playSongByPlayingIndex(this.state.playingIndex + 1);
   }
 
@@ -392,25 +407,32 @@ export default class App extends React.Component {
 	}
   }
 
-  addSongToPlaylist(AmpacheSongID, Playlist) {
-	console.log(`Add ${AmpacheSongID} To ${Playlist}`);
+  addSongToPlaylist(AmpacheSongID, TrackID, Playlist) {
+	console.log(`Add ${AmpacheSongID} To `, Playlist);
 	this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
 	  if (err) {
 		//TODO: HANDLE ERRORS!
+		console.err(err);
 		return false;
 	  }
-	  this.state.allPlaylists[Playlist.ID].pushSingleSongID(AmpacheSongID);
+	  let allPlaylistsTemp = this.state.allPlaylists;
+	  allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(AmpacheSongID, TrackID);
+	  this.setState({allPlaylists: allPlaylistsTemp});
 	});
   }
 
-  removeSongFromPlaylist(Song, Playlist) {
-	console.log(`Remove ${Song} From ${Playlist}`);
-	this.state.connection.removeSongFromPlaylist(Playlist.ID, Song.PlaylistTrackNumber, (err, cb) => {
+  removeSongFromPlaylist(AmpacheSongID, PlaylistTrackNumber, Playlist) {
+	console.log(`Remove ${PlaylistTrackNumber} From `, Playlist);
+	this.state.connection.removeSongFromPlaylist(Playlist.ID, PlaylistTrackNumber, (err, cb) => {
 	  if (err) {
 		//TODO: HANDLE ERRORS!
+		console.err(err);
 		return false;
 	  }
-	  this.context.router.push(`/playlist/${Playlist.ID}`);
+	  console.log(cb);
+	  let allPlaylistsTemp = this.state.allPlaylists;
+	  allPlaylistsTemp.get(parseInt(Playlist.ID)).removeSingleSong(AmpacheSongID);
+	  this.setState({allPlaylists: allPlaylistsTemp});
 	});
   }
 
@@ -446,19 +468,25 @@ export default class App extends React.Component {
 					 transitions={this.state.transitions}
 					 sidebarClassName='sidebar'>
 			  <TopMessage Message={this.state.topMessage}/>
-			  {/*{ this.props.children }*/}
-			  {this.props.children && React.cloneElement(this.props.children, {
-				allSongs: this.state.allSongs,
-				allPlaylists: this.state.allPlaylists,
-				albumsForHome: this.state.albumsForHome,
-				onPlaySong: this.playSong,
-				playingAmpacheSongId: this.state.playingAmpacheSongId,
-				loadingAmpacheSongId: this.state.loadingAmpacheSongId,
-				onAddSongToPlaylist: this.addSongToPlaylist,
-				onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
-				updatePlaylist: this.updatePlaylist
-			  })}
-
+			  {
+				renderIf(!this.state.noCredentials)(
+					this.props.children && React.cloneElement(this.props.children, {
+					  allSongs: this.state.allSongs,
+					  allPlaylists: this.state.allPlaylists,
+					  albumsForHome: this.state.albumsForHome,
+					  allAlbums: this.state.allAlbums,
+					  onPlaySong: this.playSong,
+					  playingAmpacheSongId: this.state.playingAmpacheSongId,
+					  loadingAmpacheSongId: this.state.loadingAmpacheSongId,
+					  onAddSongToPlaylist: this.addSongToPlaylist,
+					  onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
+					  updatePlaylist: this.updatePlaylist
+					}))}
+			  {renderIf(this.state.noCredentials)(
+			  	<div className='keyContainer'>
+				  <img src='assets/images/key.png' />
+				</div>
+			  )}
 			</Sidebar>
 		  </div>
 		  <Footer root={this.props.route.path} onPlayPauseSong={this.playPauseSong}
