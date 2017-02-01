@@ -2,25 +2,12 @@ import React from 'react'
 import AlbumDisplay from './components/AlbumDisplay'
 export default class HomeView extends React.Component {
 
-  constructor(props, context) {
-	super(props, context);
-	console.log("con", context)
-
-	this.state = {
-	  albumsForHome: context.albumsForHome
-	};
+  constructor(props) {
+	super(props);
   }
-
-  componentWillReceiveProps(nextProps, nextContext) {
-	console.log("NEXT", nextContext, this.state);
-	if (this.state.albumsForHome.length === 0) {
-	  this.setState({albumsForHome: nextContext.albumsForHome})
-	}
-  }
-
 
   render() {
-	console.log(this.context);
+	console.log(this.props);
 	return (
 		<div>
 		  <div className='center'>Home</div>
@@ -31,9 +18,8 @@ export default class HomeView extends React.Component {
 		  <div>
 			<div className='center albumTitle'>Albums</div>
 			<div className='albumDisplayContainer'>
-
 			  {
-				this.state.albumsForHome.map((album, index) => {
+				this.props.albumsForHome.map((album, index) => {
 				  return <AlbumDisplay Album={album} key={index}/>
 				})
 			  }
@@ -43,8 +29,8 @@ export default class HomeView extends React.Component {
 	);
   }
 }
-// Access parent context by defining contextTypes
-HomeView.contextTypes = {
+// Verify Prop Types
+HomeView.propTypes = {
   albumsForHome: React.PropTypes.array
 };
 

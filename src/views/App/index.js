@@ -163,6 +163,7 @@ export default class App extends React.Component {
 	  if (err) {
 		return cb(err, result);
 	  }
+	  console.log(this.state);
 	  allPlaylists[playlistID].Songs = [];
 	  songs.forEach((song) => {
 		allPlaylists[playlistID].pushSingleSongID(song.ID);
@@ -427,21 +428,6 @@ export default class App extends React.Component {
 	}
   }
 
-  // passes the information down to its children
-  getChildContext() {
-	return {
-	  allSongs: this.state.allSongs,
-	  allPlaylists: this.state.allPlaylists,
-	  albumsForHome: this.state.albumsForHome,
-	  onPlaySong: this.playSong,
-	  playingAmpacheSongId: this.state.playingAmpacheSongId,
-	  loadingAmpacheSongId: this.state.loadingAmpacheSongId,
-	  onAddSongToPlaylist: this.addSongToPlaylist,
-	  onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
-	  updatePlaylist: this.updatePlaylist
-	};
-  }
-
   render() {
 	console.log("render", this.state.allPlaylists);
 	return (
@@ -460,7 +446,19 @@ export default class App extends React.Component {
 					 transitions={this.state.transitions}
 					 sidebarClassName='sidebar'>
 			  <TopMessage Message={this.state.topMessage}/>
-			  { this.props.children }
+			  {/*{ this.props.children }*/}
+			  {this.props.children && React.cloneElement(this.props.children, {
+				allSongs: this.state.allSongs,
+				allPlaylists: this.state.allPlaylists,
+				albumsForHome: this.state.albumsForHome,
+				onPlaySong: this.playSong,
+				playingAmpacheSongId: this.state.playingAmpacheSongId,
+				loadingAmpacheSongId: this.state.loadingAmpacheSongId,
+				onAddSongToPlaylist: this.addSongToPlaylist,
+				onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
+				updatePlaylist: this.updatePlaylist
+			  })}
+
 			</Sidebar>
 		  </div>
 		  <Footer root={this.props.route.path} onPlayPauseSong={this.playPauseSong}
@@ -474,19 +472,7 @@ export default class App extends React.Component {
 	);
   }
 }
-// make information available to its children
-App.childContextTypes = {
-  allSongs: React.PropTypes.array,
-  allPlaylists: React.PropTypes.array,
-  albumsForHome: React.PropTypes.array,
-  onPlaySong: React.PropTypes.func,
-  playingAmpacheSongId: React.PropTypes.number,
-  loadingAmpacheSongId: React.PropTypes.number,
-  onAddSongToPlaylist: React.PropTypes.func,
-  onRemoveSongFromPlaylist: React.PropTypes.func,
-  updatePlaylist: React.PropTypes.func
-};
 
 App.contextTypes = {
   router: React.PropTypes.object.isRequired
-}
+};

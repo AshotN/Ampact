@@ -9,9 +9,6 @@ import classNames from 'classnames';
 class SongRow extends Component  {
 	constructor(props) {
 		super(props);
-
-		this.state = {
-		}
 	}
 
 	isSongInPlaylist(songID, Playlist) {
@@ -34,13 +31,11 @@ class SongRow extends Component  {
 
 		let that = this;
 
-		console.log(this.context.allPlaylists);
-
 		let addToPlaylistEntry = [
 
 
 		];
-		this.context.allPlaylists.forEach((Playlist, ID) => {
+		this.props.allPlaylists.forEach((Playlist, ID) => {
 			let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
 			addToPlaylistEntry.push({
 					label: Playlist.Name,
@@ -73,7 +68,7 @@ class SongRow extends Component  {
 				enabled: that.props.currentPlaylistID != -1 && that.props.currentPlaylistID != 999,
 				click () {
 				  console.log(that.props.currentPlaylistID);
-					that.handlePlaylist(Song, that.context.allPlaylists[that.props.currentPlaylistID], true);
+					that.handlePlaylist(Song, that.props.allPlaylists[that.props.currentPlaylistID], true);
 				}
 			}
 		];
@@ -85,19 +80,17 @@ class SongRow extends Component  {
 
 	handlePlaylist (Song, Playlist, inPlaylist) {
 		console.log(Playlist, inPlaylist);
-		if (!inPlaylist && typeof this.context.onAddSongToPlaylist === 'function') {
-			this.context.onAddSongToPlaylist(Song.ID, Playlist);
+		if (!inPlaylist && typeof this.props.onAddSongToPlaylist === 'function') {
+			this.props.onAddSongToPlaylist(Song.ID, Playlist);
 		}
-		else if (inPlaylist && typeof this.context.onRemoveSongFromPlaylist === 'function') {
-			this.context.onRemoveSongFromPlaylist(Song, Playlist);
+		else if (inPlaylist && typeof this.props.onRemoveSongFromPlaylist === 'function') {
+			this.props.onRemoveSongFromPlaylist(Song, Playlist);
 		}
 	}
 
 	playSong (AmpacheSongId, URL, playingIndex) {
-	  console.log("A", this.context);
-		if (typeof this.context.onPlaySong === 'function') {
-		  console.log("B");
-		  this.context.onPlaySong(AmpacheSongId, URL, playingIndex);
+		if (typeof this.props.onPlaySong === 'function') {
+		  this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
 		}
 	}
 
@@ -145,21 +138,13 @@ class SongRow extends Component  {
 }
 
 SongRow.propTypes = {
-	// Song: React.PropTypes.object.isRequired,
-	// Index: React.PropTypes.number.isRequired,
-	// playingAmpacheSongId: React.PropTypes.number.isRequired,
-	// onPlaySong: React.PropTypes.func.isRequired,
+	Song: React.PropTypes.object.isRequired,
+	Index: React.PropTypes.number.isRequired,
+	playingAmpacheSongId: React.PropTypes.number.isRequired,
+	onPlaySong: React.PropTypes.func.isRequired,
 	// onFavSong: React.PropTypes.func.isRequired,
 	// onRenderAlbum: React.PropTypes.func.isRequired,
 	// onRenderArtist: React.PropTypes.func.isRequired
-};
-
-// Access parent context by defining contextTypes
-SongRow.contextTypes = {
-  onPlaySong: React.PropTypes.func,
-  allPlaylists: React.PropTypes.array,
-  onAddSongToPlaylist: React.PropTypes.func,
-  onRemoveSongFromPlaylist: React.PropTypes.func
 };
 
 export default SongRow;
