@@ -13,8 +13,6 @@ class SidebarContent extends Component {
 	  docked: true,
 	  transitions: false
 	};
-
-	// this.fetchPlaylists();
   }
 
   openSettings(e) {

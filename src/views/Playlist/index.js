@@ -31,7 +31,9 @@ export default class PlaylistView extends React.Component {
 
 	let i = 0;
 	this.props.allPlaylists.get(parseInt(this.props.routeParams.playlistID)).Songs.forEach((playlistTrackID, songID) => {
-	  let theSong = this.props.allSongs.get(songID);
+	  console.log(playlistTrackID, songID);
+	  let theSong = this.props.allSongs.get(parseInt(songID));
+	  console.log(songID, theSong);
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
 					  currentPlaylist={this.state.currentPlaylist}
 					  Index={i} Song={theSong}
@@ -50,7 +52,7 @@ export default class PlaylistView extends React.Component {
 			<div className='artist'>Artist</div>
 			<div className='album'>Album</div>
 		  </div>
-		  <div className='songs'>
+		  <div className='songs'> {i}
 			{songRows}
 		  </div>
 		</div>

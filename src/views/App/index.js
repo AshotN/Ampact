@@ -63,7 +63,7 @@ export default class App extends React.Component {
 		console.error("There was a problem connecting to the server", err);
 		return;
 	  }
-	  retry({times: 3, interval: 200}, this.fetchPlaylists.bind(this), (err, result) => {
+	  retry({times: 3, interval: 200}, this.fetchAllPlaylists.bind(this), (err) => {
 		if (err) {
 		  this.showNotificationTop("There was a problem fetching the playlists");
 		  console.error("There was a problem fetching the playlists", err);
@@ -76,20 +76,25 @@ export default class App extends React.Component {
 			return;
 		  }
 		  let randomAlbums = new Map();
+		  let uniqueNums = [];
+		  let randomNum;
 		  for(let i = 0; i < 5; i++) {
-			let randomNum = Math.floor((Math.random() * result.size) + 1);
-			console.log(randomNum, result.get(randomNum));
+			do
+			  randomNum = Math.floor((Math.random() * result.size) + 1);
+			while(uniqueNums.indexOf(randomNum) !== -1);
+
+			uniqueNums.push(randomNum);
 			randomAlbums.set(i, result.get(randomNum));
 		  }
-		  console.log('asdfdsafasdaf', result, randomAlbums);
 		  this.setState({allAlbums: result, albumsForHome: randomAlbums});
 		});
-		retry({times: 3, interval: 200}, this.getAllSongs.bind(this), (err, result) => {
+		retry({times: 3, interval: 200}, this.state.connection.getAllSongs, (err, Songs) => {
 		  if (err) {
 			this.showNotificationTop("There was a problem fetching the songs");
 			console.error("There was a problem fetching the songs", err);
 			return;
 		  }
+		  this.setState({allSongs: Songs})
 		});
 	  });
 	});
@@ -105,6 +110,15 @@ export default class App extends React.Component {
 	}, timeout)
   }
 
+  /**
+   * @callback connectToServerCallback
+   * @param {null|string} errorCode - The code returned by the Ampache server
+   * @param {string|null} authKey - Key used for all future interactions with the API
+   */
+   /**
+   * Creates a connection to the server
+   * @param {connectToServerCallback} cb - The callback that handles the response.
+   * */
   connectToServer(cb) {
 	// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
 	storage.has('ampact', (err, hasKey) => {
@@ -114,16 +128,17 @@ export default class App extends React.Component {
 	  } else {
 		storage.get('ampact', (err, data) => {
 		  if (err) {
-			return cb(err, result);
+			return cb(err, null);
 		  }
 		  let serverConnection = new Ampache(data.serverUsername, data.serverPassword, data.serverIP);
 
 		  serverConnection.handshake((err, result) => {
 			if (err) {
-			  return cb(err, result);
+			  return cb(err, null);
 			}
-			this.setState({connection: serverConnection});
-			return cb(null, result);
+			this.setState({connection: serverConnection}, () => {
+			  return cb(null, result);
+			});
 		  });
 		});
 	  }
@@ -131,24 +146,33 @@ export default class App extends React.Component {
 
   }
 
-  fetchPlaylists(cb) {
-	this.state.connection.getAllPlaylists((err, playlists) => {
-	  console.log(err, playlists);
+  /**
+   * @callback fetchAllPlaylistsCallback
+   * @param {null|string} Error
+   */
+  /**
+   * Get and Populate all Playlists
+   * @param {fetchAllPlaylistsCallback} cb - The callback that handles the response.
+   * */
+  fetchAllPlaylists(cb) {
+	let promises = [];
+	this.state.connection.getAllPlaylists().then((playlists) => {
 	  let allPlaylistsTemp = new Map(playlists);
 	  allPlaylistsTemp.forEach((Playlist) => {
-		this.state.connection.getPlaylistSongs(Playlist.ID, (err, songs) => {
-		  if (err) {
-			return cb(err, result);
-		  }
-		  songs.forEach((song) => {
-			allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(song.ID, 432);
-		  });
-		  console.log("AAAAAAAAAAAAAAAA");
-		});
+		promises.push(
+			this.state.connection.getPlaylistSongs(Playlist.ID).then((songs) => {
+			  songs.forEach((song, playlistTrackNumber) => {
+				allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(song.ID, parseInt(playlistTrackNumber));
+			  });
+			}));
 	  });
-	  console.log("BBBBBBBBBBBBBBb");
-	  this.setState({allPlaylists: playlists});
-	  return cb(null, 'success');
+	  Promise.all(promises).then(() => {
+		this.setState({allPlaylists: allPlaylistsTemp}, () => {
+		  return cb(null);
+		});
+	  })
+	}).catch((error) => {
+	  return cb(error);
 	});
   }
 
@@ -169,22 +193,20 @@ export default class App extends React.Component {
 
   updatePlaylist(playlistID, cb) {
     playlistID = parseInt(playlistID);
-    let allPlaylists = this.state.allPlaylists;
-	this.state.connection.getPlaylistSongs(playlistID, (err, songs) => {
-	  if (err) {
-		return cb(err, result);
-	  }
-	  allPlaylists.get(playlistID).clearSongs();
-	  songs.forEach((song) => {
-		console.log(allPlaylists, allPlaylists.get(playlistID));
-		let allPlaylistsTemp = this.state.allPlaylists;
-		allPlaylistsTemp.get(parseInt(playlistID)).pushSingleSong(song.ID, song.PlaylistTrackNumber);
-		this.setState({allPlaylists: allPlaylistsTemp});
+	let allPlaylistsTemp = new Map(this.state.allPlaylists);
+	let promises = [];
+
+	promises.push(
+	  this.state.connection.getPlaylistSongs(playlistID).then((songs) => {
+		songs.forEach((song, playlistTrackNumber) => {
+		  allPlaylistsTemp.get(parseInt(playlistID)).pushSingleSong(song.ID, parseInt(playlistTrackNumber));
+		});
+	}));
+	Promise.all(promises).then(() => {
+	  this.setState({allPlaylists: allPlaylistsTemp}, () => {
+		return cb(null, 'success');
 	  });
 	});
-	console.log(allPlaylists);
-	this.setState({allPlaylists: allPlaylists});
-	return cb(null, 'success');
   }
 
   playPauseSong() {
@@ -214,30 +236,37 @@ export default class App extends React.Component {
 	}
   }
 
-  getAllSongs(cb) {
-	this.state.connection.getSongs((err, songs) => {
-	  if (err) {
-		return cb(err, null);
-	  }
-	  let theSongs = new Map();
-	  songs.forEach((song) => {
-		theSongs.set(song.ID, song);
-	  });
-		console.log('allsongs', theSongs);
-	  this.setState({allSongs: theSongs});
-	});
-  }
+  // getAllSongs(cb) {
+	// this.state.connection.getSongs((err, songs) => {
+	//   if (err) {
+	// 	return cb(err, null);
+	//   }
+	//   let theSongs = new Map();
+	//   songs.forEach((song) => {
+	// 	theSongs.set(song.ID, song);
+	//   });
+	// 	console.log('allsongs', theSongs);
+	//   this.setState({allSongs: theSongs});
+	// });
+  // }
 
-  playSong(AmpacheSongId, playingIndex) {
+  /**
+   * Play the specified song
+   * @param {Number} AmpacheSongID
+   * @param {Number} playingIndex
+   * */
+  playSong(AmpacheSongID, playingIndex) {
 
-    let URL = this.state.allSongs.get(AmpacheSongId).URL;
+    AmpacheSongID = parseInt(AmpacheSongID);
+	console.log(typeof AmpacheSongID, this.state.allSongs);
+	let URL = this.state.allSongs.get(AmpacheSongID).URL;
 
 	//Stop playing current songs and once that's done
 	//setState that we are now loading a song and wait for the state to be set
 	this.stopPlaying((cb) => {
 	  this.setState({
 		isLoading: true,
-		loadingAmpacheSongId: AmpacheSongId
+		loadingAmpacheSongId: AmpacheSongID
 	  }, () => {
 		let re = /(?:\.([^.]+))?$/;
 
@@ -266,7 +295,7 @@ export default class App extends React.Component {
 			  playingHowlID: -1,
 			  playingIndex: playingIndex,
 			  playerObject: player,
-			  playingAmpacheSongId: parseInt(AmpacheSongId),
+			  playingAmpacheSongId: parseInt(AmpacheSongID),
 			  FLAC: 1
 			});
 		  });
@@ -284,7 +313,7 @@ export default class App extends React.Component {
 			  this.songIsOver();
 			},
 			onload: () => {
-			  console.log("Loaded", AmpacheSongId + ":" + this.state.loadingAmpacheSongId);
+			  console.log("Loaded", AmpacheSongID + ":" + this.state.loadingAmpacheSongId);
 			  let howlID = sound.play();
 			  this.setState({
 				isLoading: false,
@@ -293,7 +322,7 @@ export default class App extends React.Component {
 				isStopped: false,
 				playingHowlID: howlID,
 				playingIndex: playingIndex,
-				playingAmpacheSongId: parseInt(AmpacheSongId),
+				playingAmpacheSongId: parseInt(AmpacheSongID),
 				loadingAmpacheSongId: -1,
 				FLAC: 0,
 				soundHowl: sound,
@@ -415,7 +444,8 @@ export default class App extends React.Component {
 		console.err(err);
 		return false;
 	  }
-	  let allPlaylistsTemp = this.state.allPlaylists;
+	  // let allPlaylistsTemp = this.state.allPlaylists;
+	  let allPlaylistsTemp = new Map(this.state.allPlaylists);
 	  allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(AmpacheSongID, TrackID);
 	  this.setState({allPlaylists: allPlaylistsTemp});
 	});
@@ -430,7 +460,8 @@ export default class App extends React.Component {
 		return false;
 	  }
 	  console.log(cb);
-	  let allPlaylistsTemp = this.state.allPlaylists;
+	  // let allPlaylistsTemp = this.state.allPlaylists;
+	  let allPlaylistsTemp = new Map(this.state.allPlaylists);
 	  allPlaylistsTemp.get(parseInt(Playlist.ID)).removeSingleSong(AmpacheSongID);
 	  this.setState({allPlaylists: allPlaylistsTemp});
 	});
