@@ -69,24 +69,12 @@ export default class App extends React.Component {
 		  console.error("There was a problem fetching the playlists", err);
 		  return;
 		}
-		retry({times: 3, interval: 200}, this.state.connection.getAllAlbums, (err, result) => {
+		retry({times: 3, interval: 200}, this.fetchAllAlbums.bind(this), (err) => {
 		  if (err) {
 			this.showNotificationTop("There was a problem fetching the albums");
 			console.error("There was a problem fetching the albums", err);
 			return;
 		  }
-		  let randomAlbums = new Map();
-		  let uniqueNums = [];
-		  let randomNum;
-		  for(let i = 0; i < 5; i++) {
-			do
-			  randomNum = Math.floor((Math.random() * result.size) + 1);
-			while(uniqueNums.indexOf(randomNum) !== -1);
-
-			uniqueNums.push(randomNum);
-			randomAlbums.set(i, result.get(randomNum));
-		  }
-		  this.setState({allAlbums: result, albumsForHome: randomAlbums});
 		});
 		retry({times: 3, interval: 200}, this.state.connection.getAllSongs, (err, Songs) => {
 		  if (err) {
@@ -168,6 +156,47 @@ export default class App extends React.Component {
 	  });
 	  Promise.all(promises).then(() => {
 		this.setState({allPlaylists: allPlaylistsTemp}, () => {
+		  return cb(null);
+		});
+	  })
+	}).catch((error) => {
+	  return cb(error);
+	});
+  }
+
+  /**
+   * @callback fetchAllAlbumsCallback
+   * @param {null|string} Error
+   */
+  /**
+   * Get and Populate all Playlists
+   * @param {fetchAllAlbumsCallback} cb - The callback that handles the response.
+   * */
+  fetchAllAlbums(cb) {
+	let promises = [];
+	this.state.connection.getAllAlbums().then((albums) => {
+	  let allAlbumsTemp = new Map(albums);
+	  allAlbumsTemp.forEach((Album) => {
+		promises.push(
+			this.state.connection.getAlbumSongs(Album.ID).then((songs) => {
+			  songs.forEach((song, albumTrackNumber) => {
+				allAlbumsTemp.get(parseInt(Album.ID)).pushSingleSong(song.ID, parseInt(albumTrackNumber));
+			  });
+			}));
+	  });
+	  Promise.all(promises).then(() => {
+		let randomAlbums = new Map();
+		let uniqueNums = [];
+		let randomNum;
+		for(let i = 0; i < 5; i++) {
+		  do
+			randomNum = Math.floor((Math.random() * allAlbumsTemp.size) + 1);
+		  while(uniqueNums.indexOf(randomNum) !== -1);
+
+		  uniqueNums.push(randomNum);
+		  randomAlbums.set(i, allAlbumsTemp.get(randomNum));
+		}
+		this.setState({allAlbums: allAlbumsTemp, albumsForHome: randomAlbums}, () => {
 		  return cb(null);
 		});
 	  })

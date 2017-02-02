@@ -2,16 +2,17 @@
 
 export class Album {
 
-  constructor(albumArray) {
+  constructor(ampacheID, Title, Artist, artistID, TrackCount, CoverArt) {
 
 	//TODO: Some validation
 
-	this._ampacheID = albumArray.id;
-	this._Title = albumArray.name;
-	this._Artist = albumArray.artist.name;
-	this._artistID = albumArray.artist.id;
-	this._TrackCount = albumArray.tracks;
-	this._CoverArt = albumArray.art;
+	this._ampacheID = ampacheID;
+	this._Title = Title;
+	this._Artist = Artist;
+	this._artistID = artistID;
+	this._TrackCount = TrackCount;
+	this._CoverArt = CoverArt;
+	this._songs = new Map();
   }
 
   get ID() {
@@ -38,5 +39,16 @@ export class Album {
 	return this._CoverArt;
   }
 
+  get Songs () {
+	return this._songs
+  }
+
+  pushSingleSong (songID, trackID) {
+	this._songs.set(songID, trackID);
+  }
+
+  removeSingleSong(songID) {
+	this._songs.delete(songID);
+  }
 
 }

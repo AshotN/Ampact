@@ -4,7 +4,6 @@ export default class HomeView extends React.Component {
 
   constructor(props) {
 	super(props);
-	console.log(typeof this.props.albumsForHome)
   }
 
   render() {
@@ -15,7 +14,7 @@ export default class HomeView extends React.Component {
 		AlbumDisplays.push(<AlbumDisplay Album={album} key={index}/>);
 	  }
 	});
-	console.log(this.props.albumsForHome);
+	console.log(this.props.allAlbums);
 	return (
 		<div>
 		  <div className='center'>Home</div>
