@@ -9,12 +9,10 @@ export default class HomeView extends React.Component {
   render() {
     let AlbumDisplays = [];
 	this.props.albumsForHome.forEach((album, index) => {
-	  console.log(index, album);
 	  if(album !== undefined) {
 		AlbumDisplays.push(<AlbumDisplay Album={album} key={index}/>);
 	  }
 	});
-	console.log(this.props.allAlbums);
 	return (
 		<div>
 		  <div className='center'>Home</div>

@@ -10,31 +10,20 @@ import {Link} from 'react-router';
 class SongRow extends Component  {
 	constructor(props) {
 		super(props);
-		console.log(props);
 	}
 
 	isSongInPlaylist(songID, Playlist) {
-		console.log(songID, Playlist);
 		if(Playlist.Songs && Playlist.Songs.length <= 0) {
 			return false;
 		}
-		// for(let x = 0; x != Playlist.Songs.length; x++) {
-		// 	console.log(songID, Playlist.Songs[x]);
-		// 	if(songID == Playlist.Songs[x]){
-		// 		console.log("HIT");
-		// 		return true;
-		// 	}
-		// }
+
 	  return Playlist.Songs.has(songID);
 	}
 
 	contextMenu (e, Song) {
-		console.log('right-clicked', e);
 		e.preventDefault();
 
 		let that = this;
-
-		console.log(that.props);
 
 		let addToPlaylistEntry = [
 
@@ -86,14 +75,6 @@ class SongRow extends Component  {
 	playSong (AmpacheSongId, URL, playingIndex) {
 		if (typeof this.props.onPlaySong === 'function') {
 		  this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
-		}
-	}
-
-	renderAlbum (e, albumID){
-		e.preventDefault(); // Let's stop this event.
-		e.stopPropagation(); // Really this time.
-		if (typeof this.props.onRenderAlbum === 'function') {
-			this.props.onRenderAlbum(albumID);
 		}
 	}
 

@@ -53,13 +53,11 @@ class SidebarContent extends Component {
 	let playlistButtons = [];
 
 	this.props.allPlaylists.forEach((object, i) => {
-	  console.log(i, object);
 	  playlistButtons.push(<Link key={object.ID} to={{pathname: `/playlist/${object.ID}`}}>
 		<button className='playlistButton' key={object.ID}>{object.Name} - {object.ID}</button>
 	  </Link>);
 	});
 
-	console.log(this.props.allPlaylists);
 	return (
 		<div>
 		  <div className='sidebarTitle'>Ampact</div>

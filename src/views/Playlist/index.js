@@ -10,13 +10,10 @@ export default class PlaylistView extends React.Component {
   constructor(props) {
 	super(props);
 
-	console.log("props", props);
 
 	this.state = {};
 	this.refreshPlaylist = debounce(() => {
-		  console.log("TRY", this.props.routeParams.playlistID);
 		  this.props.updatePlaylist(this.props.routeParams.playlistID, (err, result) => {
-			console.log("UPDATED");
 		  });
 		}, 5000, {leading: true, trailing: false, maxWait: 5000}
 	);
@@ -31,9 +28,7 @@ export default class PlaylistView extends React.Component {
 
 	let i = 0;
 	this.props.allPlaylists.get(parseInt(this.props.routeParams.playlistID)).Songs.forEach((playlistTrackID, songID) => {
-	  console.log(playlistTrackID, songID);
 	  let theSong = this.props.allSongs.get(parseInt(songID));
-	  console.log(songID, theSong);
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
 					  currentPlaylist={this.state.currentPlaylist}
 					  Index={i} Song={theSong}

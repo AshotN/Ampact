@@ -11,6 +11,7 @@ const remote = require('electron').remote;
 import Footer from '../../components/Footer';
 import SidebarContent from '../../components/SidebarContent';
 import TopMessage from '../../components/topMessage';
+const shortcuts = require('../../logic/Shortcuts');
 
 import renderIf from '../../assets/scripts/renderif'
 
@@ -55,9 +56,11 @@ export default class App extends React.Component {
 	this.searchHandle = this.searchHandle.bind(this);
 	this.updatePlaylist = this.updatePlaylist.bind(this);
 
+	shortcuts({
+	  playPauseSong: this.playPauseSong
+	});
 
 	retry({times: 3, interval: 200}, this.connectToServer.bind(this), (err, result) => {
-	  console.log(err, result);
 	  if (err) {
 		this.showNotificationTop("There was a problem connecting to the server");
 		console.error("There was a problem connecting to the server", err);
@@ -110,7 +113,6 @@ export default class App extends React.Component {
   connectToServer(cb) {
 	// this.state.connection = new Ampache('hego555', 'vq7map509lz9', 'https://login.hego.co/index.php/apps/music/ampache');
 	storage.has('ampact', (err, hasKey) => {
-	  console.log(err, hasKey);
 	  if (!hasKey) {
 		this.setState({noCredentials: true});
 	  } else {
@@ -287,7 +289,6 @@ export default class App extends React.Component {
   playSong(AmpacheSongID, playingIndex) {
 
     AmpacheSongID = parseInt(AmpacheSongID);
-	console.log(typeof AmpacheSongID, this.state.allSongs);
 	let URL = this.state.allSongs.get(AmpacheSongID).URL;
 
 	//Stop playing current songs and once that's done
@@ -302,19 +303,15 @@ export default class App extends React.Component {
 		let ext = re.exec(URL)[1];
 
 		if (ext == 'flac') {
-		  console.log("FLAC!!!");
 		  var player = AV.Player.fromURL(URL);
 		  player.preload();
 		  player.volume = this.state.volume * 100;
 		  player.on('end', () => {
-			console.log("end");
 			this.songIsOver();
 		  });
 		  player.on('buffer', (percent) => {
-			console.log("Buffer: ", percent);
 		  });
 		  player.on('ready', () => {
-			console.log("READY", playingIndex);
 			player.play();
 			this.setState({
 			  isLoading: false,
@@ -329,7 +326,6 @@ export default class App extends React.Component {
 			});
 		  });
 		  player.on('error', (err) => {
-			console.log("err", err)
 		  });
 		} else {
 		  let sound = new Howl({
@@ -338,11 +334,9 @@ export default class App extends React.Component {
 			html5: true,
 			volume: this.state.volume,
 			onend: () => {
-			  console.log("OVER");
 			  this.songIsOver();
 			},
 			onload: () => {
-			  console.log("Loaded", AmpacheSongID + ":" + this.state.loadingAmpacheSongId);
 			  let howlID = sound.play();
 			  this.setState({
 				isLoading: false,
@@ -359,7 +353,6 @@ export default class App extends React.Component {
 			  });
 			},
 			onloaderror: () => {
-			  console.log("onLoadError");
 			  this.setState({
 				isLoading: false,
 				isPlaying: false,
@@ -387,6 +380,11 @@ export default class App extends React.Component {
 	  return this.stopPlaying();
 	}
 	this.playSong(ourNewSong.ID, playingIndex)
+  }
+
+  songIsOver (e) {
+	//Play the next song by order - A WIP
+	this.playSongByPlayingIndex(this.state.playingIndex+1);
   }
 
   stopPlaying(cb) {
@@ -437,7 +435,6 @@ export default class App extends React.Component {
 
   playNextSong() {
 	//Play the next song by order - A WIP
-	console.log(this.state.playingIndex);
 	this.playSongByPlayingIndex(this.state.playingIndex + 1);
   }
 
@@ -466,7 +463,6 @@ export default class App extends React.Component {
   }
 
   addSongToPlaylist(AmpacheSongID, TrackID, Playlist) {
-	console.log(`Add ${AmpacheSongID} To `, Playlist);
 	this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
 	  if (err) {
 		//TODO: HANDLE ERRORS!
@@ -481,14 +477,12 @@ export default class App extends React.Component {
   }
 
   removeSongFromPlaylist(AmpacheSongID, PlaylistTrackNumber, Playlist) {
-	console.log(`Remove ${PlaylistTrackNumber} From `, Playlist);
 	this.state.connection.removeSongFromPlaylist(Playlist.ID, PlaylistTrackNumber, (err, cb) => {
 	  if (err) {
 		//TODO: HANDLE ERRORS!
 		console.err(err);
 		return false;
 	  }
-	  console.log(cb);
 	  // let allPlaylistsTemp = this.state.allPlaylists;
 	  let allPlaylistsTemp = new Map(this.state.allPlaylists);
 	  allPlaylistsTemp.get(parseInt(Playlist.ID)).removeSingleSong(AmpacheSongID);
@@ -511,7 +505,6 @@ export default class App extends React.Component {
   }
 
   render() {
-	console.log("render", this.state.allPlaylists);
 	return (
 		<div>
 		  <div className='dragBar'>

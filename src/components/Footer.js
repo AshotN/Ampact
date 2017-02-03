@@ -73,8 +73,6 @@ class Footer extends Component {
 
 	this.setState({seekBarPos: newSongSeek, elapsedTime: percentageSeek});
 
-	console.log(percentageSeek, newSongSeek);
-
 	if (typeof this.props.onSeekChange === 'function') {
 	  this.props.onSeekChange(newSongSeek);
 	}

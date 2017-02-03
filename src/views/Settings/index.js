@@ -14,7 +14,6 @@ module.exports = class SettingsView extends Component {
   };
 
   storage.has('ampact', (err, hasKey) => {
-    console.log(err, hasKey);
     if(!hasKey){
       storage.set('ampact', {}, (err) =>{
       if(err) {
@@ -27,7 +26,6 @@ module.exports = class SettingsView extends Component {
       //TODO: Proper error handling
       }
       this.setState(data);
-      console.log(data);
     });
     }
   });
@@ -47,7 +45,6 @@ module.exports = class SettingsView extends Component {
   }
 
   saveSettings(){
-  console.log(this.state);
   storage.set('ampact', this.state, (err) =>{
     if(err) {
     //TODO: Proper error handling

@@ -14,9 +14,7 @@ export default class AlbumView extends React.Component {
 
 	let i = 0;
 	this.props.allAlbums.get(parseInt(this.props.routeParams.albumID)).Songs.forEach((albumTrackID, songID) => {
-	  console.log(albumTrackID, songID);
 	  let theSong = this.props.allSongs.get(parseInt(songID));
-	  console.log(songID, theSong);
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
 							 currentPlaylist={-1}
 							 Index={i} Song={theSong}

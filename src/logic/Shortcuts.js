@@ -5,7 +5,6 @@ var combokeys = new Combokeys(document.documentElement);
 module.exports = function (opts) {
     console.log("Initailized Shortcuts", opts);
     combokeys.bind(['space', 'ctrl+k'], (e) => {
-        console.log('play', e);
         opts.playPauseSong();
         // return false to prevent default browser behavior
         // and stop event from bubbling

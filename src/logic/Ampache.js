@@ -58,10 +58,6 @@ export class Ampache {
 	let time = Math.round((new Date()).getTime() / 1000);
 	const key = crypto.createHash('sha256').update(this.apikey).digest('hex');
 	const passphrase = crypto.createHash('sha256').update(time + key).digest('hex');
-
-	console.log(key + ':' + passphrase);
-
-
 	console.log(`${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`);
 	request({
 	  url: `${this.server}/server/json.server.php?action=handshake&user=${this.username}&timestamp=${time}&auth=${passphrase}&version=350001`,
@@ -71,13 +67,10 @@ export class Ampache {
 
 		let JSONData = JSON.parse(body);
 
-		console.log(JSONData);
-
 		if (JSONData.error) {
 		  return cb(JSONData.error, null);
 		}
 		else if (JSONData.auth) {
-		  console.log(JSONData.auth);
 		  this.authCode = JSONData.auth;
 		  return cb(null, JSONData.auth);
 		}
@@ -136,7 +129,6 @@ export class Ampache {
 		var JSONData = JSON.parse(body);
 		if (JSONData.error != null) {
 		  var errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
@@ -161,10 +153,8 @@ export class Ampache {
 	  if (!error && response.statusCode == 200) {
 		var JSONData = JSON.parse(body);
 
-		console.log(JSONData);
 		if (JSONData.error != null) {
 		  var errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
@@ -189,10 +179,8 @@ export class Ampache {
 	  if (!error && response.statusCode == 200) {
 		var JSONData = JSON.parse(body);
 
-		console.log(JSONData);
 		if (JSONData.error != null) {
 		  var errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
@@ -218,12 +206,10 @@ export class Ampache {
 
 		if (JSONData.error != null) {
 		  var errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
 
-		  console.log(JSONData[0].song);
 		  let song = new Song(JSONData[0].song);
 
 		  cb(null, song);
@@ -268,7 +254,6 @@ export class Ampache {
 
 		if (JSONData.error != null) {
 		  let errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
@@ -285,7 +270,6 @@ export class Ampache {
 	return new Promise((resolve, reject) => {
 	  console.log(playListID, `${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`);
 	  request(`${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`, (error, response, body) => {
-		console.log(55, error);
 		if (!error && response.statusCode == 200) {
 		  var JSONData = JSON.parse(body);
 
@@ -297,7 +281,6 @@ export class Ampache {
 			let songs = new Map();
 
 			JSONData.forEach(function (entry) {
-			  console.log(entry.song);
 			  let songData = entry.song;
 			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, -1);
 			  songs.set(songData.playlisttrack, song);
@@ -326,7 +309,6 @@ export class Ampache {
 			let songs = new Map();
 
 			JSONData.forEach(function (entry) {
-			  console.log(entry.song);
 			  let songData = entry.song;
 			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, -1);
 			  songs.set(songData.track, song);
@@ -349,7 +331,6 @@ export class Ampache {
 		}
 		else {
 
-		  console.log(JSONData);
 		  cb(null, "Good");
 
 		}
@@ -370,7 +351,6 @@ export class Ampache {
 		}
 		else {
 
-		  console.log(JSONData);
 		  cb(null, "Good");
 
 		}
@@ -386,10 +366,8 @@ export class Ampache {
 	  if (!error && response.statusCode == 200) {
 		var JSONData = JSON.parse(body);
 
-		console.log(JSONData);
 		if (JSONData.error != null) {
 		  var errorCode = JSONData.error.code;
-		  console.log(errorCode);
 		  return cb(errorCode, null);
 		}
 		else {
