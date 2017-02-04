@@ -1,127 +1,154 @@
 import React from 'react';
-import { Component } from 'react'
+import {Component} from 'react'
 const remote = require('electron').remote;
 const Menu = remote.Menu;
 const MenuItem = remote.MenuItem;
 import classNames from 'classnames';
 import {Link} from 'react-router';
+import {Song} from '../logic/Song';
 
 
-class SongRow extends Component  {
-	constructor(props) {
-		super(props);
+class SongRow extends Component {
+  constructor(props) {
+	super(props);
+  }
+
+  isSongInPlaylist(songID, Playlist) {
+	if (Playlist.Songs && Playlist.Songs.length <= 0) {
+	  return false;
 	}
 
-	isSongInPlaylist(songID, Playlist) {
-		if(Playlist.Songs && Playlist.Songs.length <= 0) {
-			return false;
+	return Playlist.Songs.has(songID);
+  }
+
+  contextMenu(e, Song) {
+	e.preventDefault();
+
+	let that = this;
+
+	let addToPlaylistEntry = [];
+	this.props.allPlaylists.forEach((Playlist, ID) => {
+	  let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
+	  addToPlaylistEntry.push({
+		label: Playlist.Name,
+		enabled: !inPlaylist,
+		click() {
+		  that.props.onAddSongToPlaylist(Song.ID, Song.PlaylistTrackNumber, Playlist);
 		}
+	  })
+	});
 
-	  return Playlist.Songs.has(songID);
-	}
-
-	contextMenu (e, Song) {
-		e.preventDefault();
-
-		let that = this;
-
-		let addToPlaylistEntry = [
-
-
-		];
-		this.props.allPlaylists.forEach((Playlist, ID) => {
-			let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
-			addToPlaylistEntry.push({
-					label: Playlist.Name,
-					enabled: !inPlaylist,
-					click() {
-					  that.props.onAddSongToPlaylist(Song.ID, Song.PlaylistTrackNumber, Playlist);
-					}
-			})
-		});
-
-		let template = [
-			{
-				label: 'Favorite',
-				accelerator: 'CmdOrCtrl+F',
-				type: 'checkbox',
-				checked: this.props.Song.Favorite,
-				click () {
-					that.favSong(null, Song.ID);
-				}
-			},
-			{
-				label: 'Playlists',
-				submenu: addToPlaylistEntry
-			},
-			{
-				type: 'separator'
-			},
-			{
-				label: 'Remove From This Playlist',
-				enabled: that.props.currentPlaylistID != -1 && that.props.currentPlaylistID != 999,
-				click () {
-				  let playlistTrackNumber = that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)).Songs.get(Song.ID);
-				  that.props.onRemoveSongFromPlaylist(Song.ID, playlistTrackNumber, that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)));
-				}
-			}
-		];
-
-
-		const menu = Menu.buildFromTemplate(template);
-		menu.popup(remote.getCurrentWindow());
-	}
-
-	playSong (AmpacheSongId, URL, playingIndex) {
-		if (typeof this.props.onPlaySong === 'function') {
-		  this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
+	let template = [
+	  {
+		label: 'Favorite',
+		accelerator: 'CmdOrCtrl+F',
+		type: 'checkbox',
+		checked: this.props.Song.Favorite,
+		click () {
+		  that.favSong(null, Song.ID);
 		}
-	}
-
-	renderArtist (e, artistID){
-		e.preventDefault(); // Let's stop this event.
-		e.stopPropagation(); // Really this time.
-		if (typeof this.props.onRenderArtist === 'function') {
-			this.props.onRenderArtist(artistID);
+	  },
+	  {
+		label: 'Playlists',
+		submenu: addToPlaylistEntry
+	  },
+	  {
+		type: 'separator'
+	  },
+	  {
+		label: 'Remove From This Playlist',
+		enabled: that.props.currentPlaylistID != -1 && that.props.currentPlaylistID != 999,
+		click () {
+		  let playlistTrackNumber = that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)).Songs.get(Song.ID);
+		  that.props.onRemoveSongFromPlaylist(Song.ID, playlistTrackNumber, that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)));
 		}
-	}
+	  }
+	];
 
-	favSong (e, AmpacheSongId) {
-		if (typeof this.props.onFavSong === 'function') {
-			this.props.onFavSong(e, AmpacheSongId);
-		}
-	}
 
-	render () {
-		let songClasses = classNames('song', {'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId, 'loadingNow': this.props.Song.ID == this.props.loadingAmpacheSongId});
-		let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
-		return (
-			<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Index)}
-				onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses} >
-					<div className={favoriteIconClasses} onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
-					<div className='songTitleWrapper'>
-					  <div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
-					</div>
-					<div className='songArtistWrapper'>
-					  <div className='songArtist' onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
-					</div>
-			  		<div className='songAlbumWrapper'>
-					  <Link onClick={(e) => e.stopPropagation()} to={{pathname: `/album/${this.props.Song.albumID}`}}><div className='songAlbum'>{this.props.Song.Album}</div></Link>
-					</div>
-			</div>
-		);
+	const menu = Menu.buildFromTemplate(template);
+	menu.popup(remote.getCurrentWindow());
+  }
+
+  playSong(AmpacheSongId, URL, playingIndex) {
+	if (typeof this.props.onPlaySong === 'function') {
+	  this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
 	}
+  }
+
+  renderArtist(e, artistID) {
+	e.preventDefault(); // Let's stop this event.
+	e.stopPropagation(); // Really this time.
+	if (typeof this.props.onRenderArtist === 'function') {
+	  this.props.onRenderArtist(artistID);
+	}
+  }
+
+  favSong(e, AmpacheSongId) {
+	if (typeof this.props.onFavSong === 'function') {
+	  this.props.onFavSong(e, AmpacheSongId);
+	}
+  }
+
+  render() {
+	let songClasses = classNames('song', {
+	  'playingNow': this.props.Song.ID == this.props.playingAmpacheSongId,
+	  'loadingNow': this.props.Song.ID == this.props.loadingAmpacheSongId
+	});
+	let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
+	let songInfoItems = [];
+
+	if (this.props.format == "playlist") {
+	  songInfoItems.push(
+		  <div className='songWrapper playlistTitleWrapper'>
+			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
+		  </div>,
+		  <div className='songWrapper playlistArtistWrapper'>
+			<div className='songArtist'
+				 onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
+		  </div>,
+		  <div className='songWrapper playlistAlbumWrapper'>
+			<Link onClick={(e) => e.stopPropagation()} to={{pathname: `/album/${this.props.Song.albumID}`}}>
+			  <div className='songAlbum'>{this.props.Song.Album}</div>
+			</Link>
+		  </div>);
+	} else if (this.props.format == "album") {
+	  let durationTime = this.props.Song.Duration;
+
+	  // Minutes and seconds
+	  let durationMins = ~~(durationTime / 60);
+	  let durationSecs = ~~(durationTime % 60);
+	  let Duration = durationMins+":"+(durationSecs < 10 ? "0" : "") + durationSecs;
+
+	  songInfoItems.push(
+		  <div className='songWrapper albumTrackWrapper'>
+			<div className='songTrack'>{this.props.allAlbums.get(parseInt(this.props.Song.albumID)).Songs.get(this.props.Song.ID)}</div>
+		  </div>,
+		  <div className='songWrapper albumTitleWrapper'>
+			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
+		  </div>,
+		  <div className='songWrapper albumDurationWrapper'>
+			<div className='songDuration'>{Duration}</div>
+		  </div>);
+	}
+	return (
+		<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Index)}
+			 onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses}>
+		  <div className={favoriteIconClasses}
+			   onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
+		  {songInfoItems}
+		</div>
+	);
+  }
 }
 
 SongRow.propTypes = {
-	Song: React.PropTypes.object,
-	Index: React.PropTypes.number.isRequired,
-	playingAmpacheSongId: React.PropTypes.number.isRequired,
-	onPlaySong: React.PropTypes.func.isRequired,
-  	onAddSongToPlaylist: React.PropTypes.func
-	// onFavSong: React.PropTypes.func.isRequired,
-	// onRenderAlbum: React.PropTypes.func.isRequired,
-	// onRenderArtist: React.PropTypes.func.isRequired
+  Song: React.PropTypes.instanceOf(Song),
+  Index: React.PropTypes.number.isRequired,
+  playingAmpacheSongId: React.PropTypes.number.isRequired,
+  onPlaySong: React.PropTypes.func.isRequired,
+  onAddSongToPlaylist: React.PropTypes.func
+  // onFavSong: React.PropTypes.func.isRequired
 };
 
 export default SongRow;

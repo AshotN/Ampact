@@ -136,7 +136,7 @@ export class Ampache {
 
 		  JSONData.forEach(function (entry) {
 		    let songData = entry.song;
-			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, -1);
+			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
 			songs.set(parseInt(song.ID), song);
 		  });
 		  cb(null, songs);
@@ -282,7 +282,7 @@ export class Ampache {
 
 			JSONData.forEach(function (entry) {
 			  let songData = entry.song;
-			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, -1);
+			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
 			  songs.set(songData.playlisttrack, song);
 			});
 			// cb(null, songs);
@@ -310,7 +310,7 @@ export class Ampache {
 
 			JSONData.forEach(function (entry) {
 			  let songData = entry.song;
-			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, -1);
+			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
 			  songs.set(songData.track, song);
 			});
 			return resolve(songs);
@@ -324,7 +324,7 @@ export class Ampache {
 	console.log(playListID, `${this.server}/server/json.server.php?action=playlist_add_song&filter=${playListID}&song=${AmpacheSongID}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=playlist_add_song&filter=${playListID}&song=${AmpacheSongID}&auth=${this.authCode}`, (error, response, body) => {
 	  if (!error && response.statusCode == 200) {
-		var JSONData = JSON.parse(body);
+		let JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
 		  //TODO: ERROR HANDLING
@@ -343,7 +343,7 @@ export class Ampache {
 	console.log(playListID, `${this.server}/server/json.server.php?action=playlist_remove_song&filter=${playListID}&track=${PlaylistTrackNumber}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=playlist_remove_song&filter=${playListID}&track=${PlaylistTrackNumber}&auth=${this.authCode}`, (error, response, body) => {
 	  if (!error && response.statusCode == 200) {
-		var JSONData = JSON.parse(body);
+		let JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
 		  //TODO: ERROR HANDLING

@@ -192,7 +192,7 @@ export default class App extends React.Component {
 		let randomNum;
 		for(let i = 0; i < 5; i++) {
 		  do
-			randomNum = Math.floor((Math.random() * allAlbumsTemp.size) + 1);
+			randomNum = ~~((Math.random() * allAlbumsTemp.size) + 1);
 		  while(uniqueNums.indexOf(randomNum) !== -1);
 
 		  uniqueNums.push(randomNum);
@@ -388,6 +388,7 @@ export default class App extends React.Component {
   }
 
   stopPlaying(cb) {
+    console.log("Stop");
 	if (this.state.isPlaying) {
 	  if (this.state.FLAC) {
 		this.state.playerObject.stop();

@@ -30,19 +30,18 @@ export default class PlaylistView extends React.Component {
 	this.props.allPlaylists.get(parseInt(this.props.routeParams.playlistID)).Songs.forEach((playlistTrackID, songID) => {
 	  let theSong = this.props.allSongs.get(parseInt(songID));
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
-					  currentPlaylist={this.state.currentPlaylist}
 					  Index={i} Song={theSong}
 					  playingAmpacheSongId={this.props.playingAmpacheSongId}
 					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
-					  currentPlaylistID={this.props.routeParams.playlistID}
 					  onPlaySong={this.props.onPlaySong}
+					  format="playlist"
 					  onAddSongToPlaylist={this.props.onAddSongToPlaylist}
 					  onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
 	  i++;
 	});
 	return (
-		<div className='wrapper'>
-		  <div className='headers'>
+		<div className='songRowWrapper'>
+		  <div className='songRowHeaders playlistHeaders'>
 			<div className='song'>Song</div>
 			<div className='artist'>Artist</div>
 			<div className='album'>Album</div>

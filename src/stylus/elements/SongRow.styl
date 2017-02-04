@@ -1,0 +1,114 @@
+//TODO: Rewrite SongRow component and this stylus file to be more organized and easy to understand
+
+@keyframes color_change {
+	from { color: mainColor }
+	to { color: #808080 }
+}
+.songRowWrapper
+	.songRowHeaders
+		width: 99%;
+		text-align: center;
+		margin: 0 auto;
+		height 35px
+		div
+			color: #808080;
+			padding: 10px 0;
+			position absolute
+	.playlistHeaders
+		.song
+			left 15%
+		.artist
+			left 45%
+		.album
+			left 75%
+	.albumHeaders
+		.albumTrackNumber
+			left 2%
+		.song
+			left 5%
+		.time
+			left 15%
+	.songs
+		min-width 800px
+		color white
+		a
+			color inherit
+		.song
+			border-bottom: 1px solid #3C3C3C;
+			transition: background-color 0.3s;
+			height: 40px;
+			line-height: 40px;
+			.favSong
+				background-image: url('assets/images/plusIcon.png');
+				width: 32px;
+				background-size: 90%;
+				height: 32px;
+				background-repeat: no-repeat;
+				-webkit-filter: grayscale(100%)
+				position: absolute;
+				margin: 5px 15px;
+				transition: 0.2s transform;
+				&:hover
+					-webkit-filter: grayscale(0%)
+
+				&.favorited
+					transform: rotateZ(45deg);
+
+			.songWrapper
+				position relative
+				width 28%
+				height 40px
+				display inline-block
+				div
+					overflow hidden
+					white-space nowrap
+					text-overflow ellipsis
+					display inline-block
+					max-width 100%
+
+			.playlistTitleWrapper
+				left: 15%;
+
+			.playlistArtistWrapper
+				left: 17%;
+
+			.playlistAlbumWrapper
+				left: 19%;
+
+			.albumTrackWrapper
+				left: 7%;
+
+			.albumTitleWrapper
+				left: 5%;
+
+			.albumDurationWrapper
+				left: 19%;
+
+			.songArtist:hover, .songAlbum:hover
+				color: secondaryColor;
+				cursor: pointer;
+
+
+			//div
+			//	display: inline-block;
+			//	width: 30%;
+			//	vertical-align: middle;
+			//	overflow hidden
+			//	text-overflow: ellipsis;
+			//	white-space: nowrap;
+
+			&:first-child
+				border-top: 1px solid #3C3C3C;
+
+
+			&:hover
+				background-color: #10719E;
+				transition: background-color 0.2s;
+
+			&.playingNow
+				color: mainColor
+
+
+
+			&.loadingNow
+				animation: color_change .5s infinite alternate;

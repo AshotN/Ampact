@@ -15,13 +15,13 @@ export default class AlbumView extends React.Component {
 	let i = 0;
 	this.props.allAlbums.get(parseInt(this.props.routeParams.albumID)).Songs.forEach((albumTrackID, songID) => {
 	  let theSong = this.props.allSongs.get(parseInt(songID));
-	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
-							 currentPlaylist={-1}
+	  songRows.push(<SongRow key={i}
+							 allAlbums={this.props.allAlbums}
 							 Index={i} Song={theSong}
 							 playingAmpacheSongId={this.props.playingAmpacheSongId}
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}
-							 currentPlaylistID={-1}
 							 onPlaySong={this.props.onPlaySong}
+							 format="album"
 							 onAddSongToPlaylist={this.props.onAddSongToPlaylist}
 							 onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
 	  i++;
@@ -37,9 +37,9 @@ export default class AlbumView extends React.Component {
 			  {this.ourAlbum.Title} - {this.ourAlbum.ID}
 			</div>
 		  </div>
-		  <div className='wrapper'>
-			<div className='headers'>
-			  <div className='#'>#</div>
+		  <div className='songRowWrapper'>
+			<div className='songRowHeaders albumHeaders'>
+			  <div className='albumTrackNumber'>#</div>
 			  <div className='song'>Song</div>
 			  <div className='time'>Duration</div>
 			</div>

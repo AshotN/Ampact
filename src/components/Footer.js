@@ -27,6 +27,8 @@ class Footer extends Component {
 	  this.startSeekBar();
 	} else if (prevProps.isPlaying && this.props.isPaused) {
 	  this.pauseSeekBar();
+	} else if (prevProps.isPlaying && this.props.isStopped) {
+	  this.clearSeekBar();
 	} else if (prevProps.isPaused && this.props.isPlaying) {
 	  this.startSeekBar();
 	}

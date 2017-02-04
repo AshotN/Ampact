@@ -19,9 +19,9 @@ export class Song {
    * @param {Number} Bitrate
    * @param {String} URL - URL needed to play the song
    * @param {Boolean} Favorite
-   * @param {Number} PlaylistTrackNumber
+   * @param {Number} Duration
    */
-  constructor(ampacheID, AlbumName, albumID, ArtistName, artistID, Title, MIME, Bitrate, URL, Favorite, PlaylistTrackNumber) {
+  constructor(ampacheID, AlbumName, albumID, ArtistName, artistID, Title, MIME, Bitrate, URL, Favorite, Duration) {
 
 	//TODO: Some validation
 
@@ -35,7 +35,7 @@ export class Song {
 	this._Bitrate = Bitrate;
 	this._URL = URL;
 	this._Favorite = Favorite;
-	this._PlaylistTrackNumber = PlaylistTrackNumber;
+	this._Duration = Duration;
   }
 
   /**
@@ -86,12 +86,7 @@ export class Song {
 	this._Favorite = value;
   }
 
-  // get PlaylistTrackNumber() {
-	// return this._PlaylistTrackNumber;
-  // }
-  //
-  // set PlaylistTrackNumber(value) {
-	// this._PlaylistTrackNumber = value;
-  // }
-
+  get Duration() {
+	return this._Duration;
+  }
 }
