@@ -33,6 +33,7 @@ export default class PlaylistView extends React.Component {
 					  Index={i} Song={theSong}
 					  playingAmpacheSongId={this.props.playingAmpacheSongId}
 					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
+					  currentPlaylistID={this.props.routeParams.playlistID}
 					  onPlaySong={this.props.onPlaySong}
 					  format="playlist"
 					  onAddSongToPlaylist={this.props.onAddSongToPlaylist}

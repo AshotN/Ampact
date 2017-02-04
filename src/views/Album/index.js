@@ -17,6 +17,7 @@ export default class AlbumView extends React.Component {
 	  let theSong = this.props.allSongs.get(parseInt(songID));
 	  songRows.push(<SongRow key={i}
 							 allAlbums={this.props.allAlbums}
+							 allPlaylists={this.props.allPlaylists} //Needed for context menu
 							 Index={i} Song={theSong}
 							 playingAmpacheSongId={this.props.playingAmpacheSongId}
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}

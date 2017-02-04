@@ -229,6 +229,7 @@ export default class App extends React.Component {
 
 	promises.push(
 	  this.state.connection.getPlaylistSongs(playlistID).then((songs) => {
+	    allPlaylistsTemp.get(parseInt(playlistID)).clearSongs();
 		songs.forEach((song, playlistTrackNumber) => {
 		  allPlaylistsTemp.get(parseInt(playlistID)).pushSingleSong(song.ID, parseInt(playlistTrackNumber));
 		});
@@ -463,17 +464,16 @@ export default class App extends React.Component {
 	}
   }
 
-  addSongToPlaylist(AmpacheSongID, TrackID, Playlist) {
+  addSongToPlaylist(AmpacheSongID, Playlist) {
 	this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
 	  if (err) {
 		//TODO: HANDLE ERRORS!
 		console.err(err);
 		return false;
 	  }
-	  // let allPlaylistsTemp = this.state.allPlaylists;
-	  let allPlaylistsTemp = new Map(this.state.allPlaylists);
-	  allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(AmpacheSongID, TrackID);
-	  this.setState({allPlaylists: allPlaylistsTemp});
+	  this.updatePlaylist(Playlist.ID, (err, result) => {
+	    //TODO: HANDLE ERRORS!
+	  });
 	});
   }
 

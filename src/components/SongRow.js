@@ -33,7 +33,7 @@ class SongRow extends Component {
 		label: Playlist.Name,
 		enabled: !inPlaylist,
 		click() {
-		  that.props.onAddSongToPlaylist(Song.ID, Song.PlaylistTrackNumber, Playlist);
+		  that.props.onAddSongToPlaylist(Song.ID, Playlist);
 		}
 	  })
 	});
@@ -51,20 +51,23 @@ class SongRow extends Component {
 	  {
 		label: 'Playlists',
 		submenu: addToPlaylistEntry
-	  },
-	  {
-		type: 'separator'
-	  },
-	  {
-		label: 'Remove From This Playlist',
-		enabled: that.props.currentPlaylistID != -1 && that.props.currentPlaylistID != 999,
-		click () {
-		  let playlistTrackNumber = that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)).Songs.get(Song.ID);
-		  that.props.onRemoveSongFromPlaylist(Song.ID, playlistTrackNumber, that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)));
-		}
 	  }
 	];
 
+	if(this.props.format == "playlist") {
+	  let playlistTrackID = this.props.allPlaylists.get(parseInt(this.props.currentPlaylistID)).Songs.get(this.props.Song.ID);
+
+	  template.push(
+		  {
+			type: 'separator'
+		  },
+		  {
+			label: 'Remove From This Playlist',
+			click () {
+			  that.props.onRemoveSongFromPlaylist(Song.ID, playlistTrackID, that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)));
+			}
+		  });
+	}
 
 	const menu = Menu.buildFromTemplate(template);
 	menu.popup(remote.getCurrentWindow());
@@ -101,7 +104,7 @@ class SongRow extends Component {
 	if (this.props.format == "playlist") {
 	  songInfoItems.push(
 		  <div className='songWrapper playlistTitleWrapper'>
-			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
+			<div className='songTitle'>{this.props.allPlaylists.get(parseInt(this.props.currentPlaylistID)).Songs.get(this.props.Song.ID)} - {this.props.Song.Title} - {this.props.Song.ID}</div>
 		  </div>,
 		  <div className='songWrapper playlistArtistWrapper'>
 			<div className='songArtist'
