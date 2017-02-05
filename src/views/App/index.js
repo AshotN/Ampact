@@ -23,6 +23,7 @@ export default class App extends React.Component {
 	  sidebarOpen: true,
 	  docked: true,
 	  transitions: false,
+	  connection: null,
 	  allSongs: new Map(),
 	  allPlaylists: new Map(),
 	  allAlbums: new Map(),
@@ -60,7 +61,7 @@ export default class App extends React.Component {
 	  playPauseSong: this.playPauseSong
 	});
 
-	retry({times: 3, interval: 200}, this.connectToServer.bind(this), (err, result) => {
+	retry({times: 3, interval: 200}, this.connectToServer.bind(this), (err, authKey) => {
 	  if (err) {
 		this.showNotificationTop("There was a problem connecting to the server");
 		console.error("There was a problem connecting to the server", err);
@@ -72,12 +73,24 @@ export default class App extends React.Component {
 		  console.error("There was a problem fetching the playlists", err);
 		  return;
 		}
-		retry({times: 3, interval: 200}, this.fetchAllAlbums.bind(this), (err) => {
+		retry({times: 3, interval: 200}, this.getAllAlbums.bind(this), (err, allAlbums) => {
 		  if (err) {
 			this.showNotificationTop("There was a problem fetching the albums");
 			console.error("There was a problem fetching the albums", err);
 			return;
 		  }
+		  let randomAlbums = new Map();
+		  let uniqueNums = [];
+		  let randomNum;
+		  for (let i = 0; i < 5; i++) {
+			do
+			  randomNum = ~~((Math.random() * allAlbums.size) + 1);
+			while (uniqueNums.indexOf(randomNum) !== -1);
+
+			uniqueNums.push(randomNum);
+			randomAlbums.set(i, allAlbums.get(randomNum));
+		  }
+		  this.setState({albumsForHome: randomAlbums});
 		});
 		retry({times: 3, interval: 200}, this.state.connection.getAllSongs, (err, Songs) => {
 		  if (err) {
@@ -122,12 +135,12 @@ export default class App extends React.Component {
 		  }
 		  let serverConnection = new Ampache(data.serverUsername, data.serverPassword, data.serverIP);
 
-		  serverConnection.handshake((err, result) => {
+		  serverConnection.handshake((err, authKey) => {
 			if (err) {
 			  return cb(err, null);
 			}
 			this.setState({connection: serverConnection}, () => {
-			  return cb(null, result);
+			  return cb(null, authKey);
 			});
 		  });
 		});
@@ -167,58 +180,20 @@ export default class App extends React.Component {
   }
 
   /**
-   * @callback fetchAllAlbumsCallback
+   * @callback getAllAlbumsCallback
    * @param {null|string} Error
+   * @param {null|Map.Album} allAlbums
    */
   /**
-   * Get and Populate all Playlists
-   * @param {fetchAllAlbumsCallback} cb - The callback that handles the response.
+   * Get all Albums
+   * @param {getAllAlbumsCallback} cb - The callback that handles the response.
    * */
-  fetchAllAlbums(cb) {
-	let promises = [];
-	this.state.connection.getAllAlbums().then((albums) => {
-	  let allAlbumsTemp = new Map(albums);
-	  allAlbumsTemp.forEach((Album) => {
-		promises.push(
-			this.state.connection.getAlbumSongs(Album.ID).then((songs) => {
-			  songs.forEach((song, albumTrackNumber) => {
-				allAlbumsTemp.get(parseInt(Album.ID)).pushSingleSong(song.ID, parseInt(albumTrackNumber));
-			  });
-			}));
-	  });
-	  Promise.all(promises).then(() => {
-		let randomAlbums = new Map();
-		let uniqueNums = [];
-		let randomNum;
-		for(let i = 0; i < 5; i++) {
-		  do
-			randomNum = ~~((Math.random() * allAlbumsTemp.size) + 1);
-		  while(uniqueNums.indexOf(randomNum) !== -1);
-
-		  uniqueNums.push(randomNum);
-		  randomAlbums.set(i, allAlbumsTemp.get(randomNum));
-		}
-		this.setState({allAlbums: allAlbumsTemp, albumsForHome: randomAlbums}, () => {
-		  return cb(null);
-		});
-	  })
-	}).catch((error) => {
-	  return cb(error);
-	});
-  }
-
   getAllAlbums(cb) {
-	this.state.connection.getAllAlbums((err, albums) => {
+	this.state.connection.getAllAlbums((err, allAlbums) => {
 	  if (err) {
 		return cb(err, null);
 	  }
-	  let theAlbums = [];
-	  albums.forEach((album) => {
-		theAlbums[album.ID] = album;
-	  });
-
-	  // this.setState({allAlbums: theAlbums});
-	  cb(albums);
+	  return cb(null, allAlbums);
 	});
   }
 
@@ -534,7 +509,8 @@ export default class App extends React.Component {
 					  loadingAmpacheSongId: this.state.loadingAmpacheSongId,
 					  onAddSongToPlaylist: this.addSongToPlaylist,
 					  onRemoveSongFromPlaylist: this.removeSongFromPlaylist,
-					  updatePlaylist: this.updatePlaylist
+					  updatePlaylist: this.updatePlaylist,
+					  connection: this.state.connection
 					}))}
 			  {renderIf(this.state.noCredentials)(
 			  	<div className='keyContainer'>

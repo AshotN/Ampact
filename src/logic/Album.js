@@ -43,6 +43,10 @@ export class Album {
 	return this._songs
   }
 
+  set Songs (songs) {
+	return this._songs = songs;
+  }
+
   pushSingleSong (songID, trackID) {
 	this._songs.set(songID, trackID);
   }

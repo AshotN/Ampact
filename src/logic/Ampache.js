@@ -84,33 +84,52 @@ export class Ampache {
 
 
   }
+
+  getAlbum(albumID, cb) {
+	console.log(albumID, `${this.server}/server/json.server.php?action=album&filter=${albumID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=album&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
+
+		if (JSONData.error != null) {
+		  let errorCode = JSONData.error.code;
+		  return cb(errorCode, null);
+		}
+		else {
+
+		  cb(null, JSONData[0].album);
+
+		}
+	  }
+
+	});
+  }
+
   /**
    * Gets all Albums from the Server
    * @return {Promise.<Albums>}
    */
-  getAllAlbums() {
-	return new Promise((resolve, reject) => {
-	  console.log(`${this.server}/server/json.server.php?action=albums&auth=${this.authCode}`);
-	  request(`${this.server}/server/json.server.php?action=albums&auth=${this.authCode}`, (error, response, body) => {
-		if (!error && response.statusCode == 200) {
-		  let JSONData = JSON.parse(body);
+  getAllAlbums(cb) {
+	console.log(`${this.server}/server/json.server.php?action=albums&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=albums&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
 
-		  if (JSONData.error != null) {
-			let errorCode = parseInt(JSONData.error.code);
-			return reject(errorCode);
-		  }
-		  else {
-			let albums = new Map();
-
-			JSONData.forEach((entry) => {
-			  let albumData = entry.album;
-			  let album = new Album(albumData.id, albumData.name, albumData.artist.name, albumData.artist.id, albumData.tracks, albumData.art);
-			  albums.set(parseInt(album.ID), album);
-			});
-			return resolve(albums);
-		  }
+		if (JSONData.error != null) {
+		  let errorCode = parseInt(JSONData.error.code);
+		  return cb(errorCode, null);
 		}
-	  });
+		else {
+		  let albums = new Map();
+
+		  JSONData.forEach((entry) => {
+			let albumData = entry.album;
+			let album = new Album(albumData.id, albumData.name, albumData.artist.name, albumData.artist.id, albumData.tracks, albumData.art);
+			albums.set(parseInt(album.ID), album);
+		  });
+		  return cb(null, albums);
+		}
+	  }
 	});
   }
   /**
@@ -295,28 +314,26 @@ export class Ampache {
 	});
   }
 
-  getAlbumSongs(albumID) {
-	return new Promise((resolve, reject) => {
-	  console.log(albumID, `${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
-	  request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
-		if (!error && response.statusCode == 200) {
-		  let JSONData = JSON.parse(body);
+  getAlbumSongs(albumID, cb) {
+	console.log(albumID, `${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
 
-		  if (JSONData.error != null) {
-			return reject(JSONData.error);
-		  }
-		  else {
-			let songs = new Map();
-
-			JSONData.forEach(function (entry) {
-			  let songData = entry.song;
-			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
-			  songs.set(songData.track, song);
-			});
-			return resolve(songs);
-		  }
+		if (JSONData.error != null) {
+		  return cb(JSONData.error, null);
 		}
-	  });
+		else {
+		  let songs = new Map();
+
+		  JSONData.forEach(function (entry) {
+			let songData = entry.song;
+			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
+			songs.set(songData.track, song);
+		  });
+		  return cb(null, songs);
+		}
+	  }
 	});
   }
 

@@ -125,7 +125,7 @@ class SongRow extends Component {
 
 	  songInfoItems.push(
 		  <div className='songWrapper albumTrackWrapper'>
-			<div className='songTrack'>{this.props.allAlbums.get(parseInt(this.props.Song.albumID)).Songs.get(this.props.Song.ID)}</div>
+			<div className='songTrack'>{this.props.albumTrackID}</div>
 		  </div>,
 		  <div className='songWrapper albumTitleWrapper'>
 			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
