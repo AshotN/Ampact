@@ -1,9 +1,7 @@
 import React from 'react'
-const storage = require('electron-json-storage');
-const remote = require('electron').remote;
 import SongRow from '../../components/SongRow'
-// import _ from 'lodash'
-import {debounce} from 'lodash';
+import {Playlist} from '../../logic/Playlist';
+import LoadingSpinner from '../../components/LoadingSpinner'
 
 
 export default class PlaylistView extends React.Component {
@@ -11,33 +9,90 @@ export default class PlaylistView extends React.Component {
 	super(props);
 
 
-	this.state = {};
-	this.refreshPlaylist = debounce(() => {
-		  this.props.updatePlaylist(this.props.routeParams.playlistID, (err, result) => {
-		  });
-		}, 5000, {leading: true, trailing: false, maxWait: 5000}
-	);
+	this.state = {
+	  thePlaylist: null
+	};
+
+	this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+
+	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
+	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
+
   }
 
-  componentWillReceiveProps() {
-    this.refreshPlaylist();
+  downloadAndSetPlaylist(playlistID) {
+	this.downloadPlaylist(playlistID, (err, ourPlaylist) => {
+	  //TODO: HANDLE ERROR
+	  this.setState({thePlaylist: ourPlaylist});
+	});
+  }
+
+  addSongToPlaylist(AmpacheSongID, Playlist) {
+	this.props.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
+	  if (err) {
+		//TODO: HANDLE ERRORS!
+		console.err(err);
+		return false;
+	  }
+	  this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+	});
+  }
+
+  removeSongFromPlaylist(PlaylistTrackNumber) {
+    console.log(PlaylistTrackNumber, this.props.routeParams.playlistID);
+	this.props.connection.removeSongFromPlaylist(this.props.routeParams.playlistID, PlaylistTrackNumber, (err, cb) => {
+	  if (err) {
+		//TODO: HANDLE ERRORS!
+		console.err(err);
+		return false;
+	  }
+	  console.log("REMOVED");
+	  this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+	});
+  }
+
+  componentWillReceiveProps(nextProps) {
+    console.log("BBY NO!", this.props.routeParams.playlistID, nextProps.routeParams.playlistID);
+	if(this.props.routeParams.playlistID != nextProps.routeParams.playlistID) {
+	  this.setState({thePlaylist: null});
+	  this.downloadAndSetPlaylist(nextProps.routeParams.playlistID);
+	}
+  }
+
+  downloadPlaylist(playlistID, cb) {
+    this.props.connection.getPlaylist(playlistID, (err, playlist) => {
+	  if(err) {
+		return cb(err, null);
+	  }
+	  this.props.connection.getPlaylistSongs(playlistID, (err, songs) => {
+		if(err) {
+		  return cb(err, null);
+		}
+		let ourPlaylist = new Playlist(playlistID, playlist.Name);
+		ourPlaylist.Songs = songs;
+		return cb(null, ourPlaylist);
+	  });
+	});
   }
 
   render() {
+	if(this.state.thePlaylist == null) {
+	  return <LoadingSpinner />
+	}
 	let songRows = [];
 
 	let i = 0;
-	this.props.allPlaylists.get(parseInt(this.props.routeParams.playlistID)).Songs.forEach((playlistTrackID, songID) => {
-	  let theSong = this.props.allSongs.get(parseInt(songID));
+	this.state.thePlaylist.Songs.forEach((theSong, playlistTrackID) => {
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
 					  Index={i} Song={theSong}
+					  playlistTrackID={playlistTrackID}
 					  playingAmpacheSongId={this.props.playingAmpacheSongId}
 					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 					  currentPlaylistID={this.props.routeParams.playlistID}
 					  onPlaySong={this.props.onPlaySong}
 					  format="playlist"
-					  onAddSongToPlaylist={this.props.onAddSongToPlaylist}
-					  onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
+					  onAddSongToPlaylist={this.addSongToPlaylist}
+					  onRemoveSongFromPlaylist={this.removeSongFromPlaylist}/>);
 	  i++;
 	});
 	return (

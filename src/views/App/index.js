@@ -24,9 +24,7 @@ export default class App extends React.Component {
 	  docked: true,
 	  transitions: false,
 	  connection: null,
-	  allSongs: new Map(),
 	  allPlaylists: new Map(),
-	  allAlbums: new Map(),
 	  albumsForHome: new Map(),
 	  soundHowl: null,
 	  isLoading: false,
@@ -55,7 +53,6 @@ export default class App extends React.Component {
 	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 	this.searchHandle = this.searchHandle.bind(this);
-	this.updatePlaylist = this.updatePlaylist.bind(this);
 
 	shortcuts({
 	  playPauseSong: this.playPauseSong
@@ -67,12 +64,13 @@ export default class App extends React.Component {
 		console.error("There was a problem connecting to the server", err);
 		return;
 	  }
-	  retry({times: 3, interval: 200}, this.fetchAllPlaylists.bind(this), (err) => {
+	  retry({times: 3, interval: 200}, this.getAllPlaylists.bind(this), (err, allPlaylists) => {
 		if (err) {
 		  this.showNotificationTop("There was a problem fetching the playlists");
 		  console.error("There was a problem fetching the playlists", err);
 		  return;
 		}
+		this.setState({allPlaylists: allPlaylists});
 		retry({times: 3, interval: 200}, this.getAllAlbums.bind(this), (err, allAlbums) => {
 		  if (err) {
 			this.showNotificationTop("There was a problem fetching the albums");
@@ -149,33 +147,12 @@ export default class App extends React.Component {
 
   }
 
-  /**
-   * @callback fetchAllPlaylistsCallback
-   * @param {null|string} Error
-   */
-  /**
-   * Get and Populate all Playlists
-   * @param {fetchAllPlaylistsCallback} cb - The callback that handles the response.
-   * */
-  fetchAllPlaylists(cb) {
-	let promises = [];
-	this.state.connection.getAllPlaylists().then((playlists) => {
-	  let allPlaylistsTemp = new Map(playlists);
-	  allPlaylistsTemp.forEach((Playlist) => {
-		promises.push(
-			this.state.connection.getPlaylistSongs(Playlist.ID).then((songs) => {
-			  songs.forEach((song, playlistTrackNumber) => {
-				allPlaylistsTemp.get(parseInt(Playlist.ID)).pushSingleSong(song.ID, parseInt(playlistTrackNumber));
-			  });
-			}));
-	  });
-	  Promise.all(promises).then(() => {
-		this.setState({allPlaylists: allPlaylistsTemp}, () => {
-		  return cb(null);
-		});
-	  })
-	}).catch((error) => {
-	  return cb(error);
+  getAllPlaylists(cb) {
+    this.state.connection.getAllPlaylists((err, allPlaylists) => {
+	  if (err) {
+		return cb(err, null);
+	  }
+	  return cb(null, allPlaylists);
 	});
   }
 
@@ -194,25 +171,6 @@ export default class App extends React.Component {
 		return cb(err, null);
 	  }
 	  return cb(null, allAlbums);
-	});
-  }
-
-  updatePlaylist(playlistID, cb) {
-    playlistID = parseInt(playlistID);
-	let allPlaylistsTemp = new Map(this.state.allPlaylists);
-	let promises = [];
-
-	promises.push(
-	  this.state.connection.getPlaylistSongs(playlistID).then((songs) => {
-	    allPlaylistsTemp.get(parseInt(playlistID)).clearSongs();
-		songs.forEach((song, playlistTrackNumber) => {
-		  allPlaylistsTemp.get(parseInt(playlistID)).pushSingleSong(song.ID, parseInt(playlistTrackNumber));
-		});
-	}));
-	Promise.all(promises).then(() => {
-	  this.setState({allPlaylists: allPlaylistsTemp}, () => {
-		return cb(null, 'success');
-	  });
 	});
   }
 
@@ -242,20 +200,6 @@ export default class App extends React.Component {
 	  this.setState({isPlaying: true, isPaused: false, isStopped: false});
 	}
   }
-
-  // getAllSongs(cb) {
-	// this.state.connection.getSongs((err, songs) => {
-	//   if (err) {
-	// 	return cb(err, null);
-	//   }
-	//   let theSongs = new Map();
-	//   songs.forEach((song) => {
-	// 	theSongs.set(song.ID, song);
-	//   });
-	// 	console.log('allsongs', theSongs);
-	//   this.setState({allSongs: theSongs});
-	// });
-  // }
 
   /**
    * Play the specified song
@@ -438,34 +382,7 @@ export default class App extends React.Component {
 	  this.state.soundHowl.seek(value * duration);
 	}
   }
-
-  addSongToPlaylist(AmpacheSongID, Playlist) {
-	this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
-	  if (err) {
-		//TODO: HANDLE ERRORS!
-		console.err(err);
-		return false;
-	  }
-	  this.updatePlaylist(Playlist.ID, (err, result) => {
-	    //TODO: HANDLE ERRORS!
-	  });
-	});
-  }
-
-  removeSongFromPlaylist(AmpacheSongID, PlaylistTrackNumber, Playlist) {
-	this.state.connection.removeSongFromPlaylist(Playlist.ID, PlaylistTrackNumber, (err, cb) => {
-	  if (err) {
-		//TODO: HANDLE ERRORS!
-		console.err(err);
-		return false;
-	  }
-	  // let allPlaylistsTemp = this.state.allPlaylists;
-	  let allPlaylistsTemp = new Map(this.state.allPlaylists);
-	  allPlaylistsTemp.get(parseInt(Playlist.ID)).removeSingleSong(AmpacheSongID);
-	  this.setState({allPlaylists: allPlaylistsTemp});
-	});
-  }
-
+  
   closeApplication() {
 	remote.getCurrentWindow().close();
   }

@@ -240,8 +240,7 @@ export class Ampache {
 
   }
 
-  getAllPlaylists() {
-    return new Promise((resolve, reject) => {
+  getAllPlaylists(cb) {
 	console.log(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=playlists&auth=${this.authCode}`, (error, response, body) => {
 	  if (!error && response.statusCode == 200) {
@@ -249,7 +248,7 @@ export class Ampache {
 
 		if (JSONData.error != null) {
 		  let errorCode = JSONData.error.code;
-		  return reject(errorCode);
+		  return cb(errorCode, null);
 		}
 		else {
 		  let playlists = new Map();
@@ -258,11 +257,10 @@ export class Ampache {
 			let ourPlaylist = new Playlist(playlist.playlist.id, playlist.playlist.name);
 			playlists.set(parseInt(playlist.playlist.id), ourPlaylist);
 		  });
-		  resolve(playlists);
+		  return cb(null, playlists);
 		}
 	  }
 	});
-  });
   }
 
   getPlaylist(PlaylistID, cb) {
@@ -276,41 +274,37 @@ export class Ampache {
 		  return cb(errorCode, null);
 		}
 		else {
-		  let ourPlaylist = new Playlist(JSONData[0].id, JSONData[0].name);
-		  cb(null, ourPlaylist);
-
+		  cb(null, JSONData[0].playlist);
 		}
 	  }
 
 	});
   }
 
-  getPlaylistSongs(playListID) {
-	return new Promise((resolve, reject) => {
-	  console.log(playListID, `${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`);
-	  request(`${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`, (error, response, body) => {
-		if (!error && response.statusCode == 200) {
-		  var JSONData = JSON.parse(body);
+  getPlaylistSongs(playListID, cb) {
+	console.log(playListID, `${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=playlist_songs&filter=${playListID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
 
-		  if (JSONData.error != null) {
-			return reject(JSONData.error);
-		  }
-		  else {
-
-			let songs = new Map();
-
-			JSONData.forEach(function (entry) {
-			  let songData = entry.song;
-			  let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
-			  songs.set(songData.playlisttrack, song);
-			});
-			// cb(null, songs);
-			return resolve(songs);
-
-		  }
+		if (JSONData.error != null) {
+		  return cb(JSONData.error, null);
 		}
+		else {
 
-	  });
+		  let songs = new Map();
+
+		  JSONData.forEach(function (entry) {
+			let songData = entry.song;
+			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
+			songs.set(songData.playlisttrack, song);
+		  });
+		  // cb(null, songs);
+		  return cb(null, songs);
+
+		}
+	  }
+
 	});
   }
 

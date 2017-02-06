@@ -13,29 +13,21 @@ class SongRow extends Component {
 	super(props);
   }
 
-  isSongInPlaylist(songID, Playlist) {
-	if (Playlist.Songs && Playlist.Songs.length <= 0) {
-	  return false;
-	}
-
-	return Playlist.Songs.has(songID);
-  }
-
   contextMenu(e, Song) {
 	e.preventDefault();
 
 	let that = this;
 
 	let addToPlaylistEntry = [];
-	this.props.allPlaylists.forEach((Playlist, ID) => {
-	  let inPlaylist = that.isSongInPlaylist(Song.ID, Playlist);
-	  addToPlaylistEntry.push({
-		label: Playlist.Name,
-		enabled: !inPlaylist,
-		click() {
-		  that.props.onAddSongToPlaylist(Song.ID, Playlist);
-		}
-	  })
+	this.props.allPlaylists.forEach((Playlist, PlaylistID) => {
+	  if(PlaylistID != this.props.currentPlaylistID) {
+		addToPlaylistEntry.push({
+		  label: Playlist.Name,
+		  click() {
+			that.props.onAddSongToPlaylist(Song.ID, Playlist);
+		  }
+		})
+	  }
 	});
 
 	let template = [
@@ -55,8 +47,6 @@ class SongRow extends Component {
 	];
 
 	if(this.props.format == "playlist") {
-	  let playlistTrackID = this.props.allPlaylists.get(parseInt(this.props.currentPlaylistID)).Songs.get(this.props.Song.ID);
-
 	  template.push(
 		  {
 			type: 'separator'
@@ -64,7 +54,7 @@ class SongRow extends Component {
 		  {
 			label: 'Remove From This Playlist',
 			click () {
-			  that.props.onRemoveSongFromPlaylist(Song.ID, playlistTrackID, that.props.allPlaylists.get(parseInt(that.props.currentPlaylistID)));
+			  that.props.onRemoveSongFromPlaylist(that.props.playlistTrackID);
 			}
 		  });
 	}
@@ -104,7 +94,7 @@ class SongRow extends Component {
 	if (this.props.format == "playlist") {
 	  songInfoItems.push(
 		  <div className='songWrapper playlistTitleWrapper'>
-			<div className='songTitle'>{this.props.allPlaylists.get(parseInt(this.props.currentPlaylistID)).Songs.get(this.props.Song.ID)} - {this.props.Song.Title} - {this.props.Song.ID}</div>
+			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
 		  </div>,
 		  <div className='songWrapper playlistArtistWrapper'>
 			<div className='songArtist'

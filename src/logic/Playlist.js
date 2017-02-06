@@ -27,10 +27,10 @@ export class Playlist {
 	  this._songs = new Map();
 	}
 
-	// set Songs (arrayOfSongIDs) {
-	// 	//TODO: Validation
-	// 	this._songs = arrayOfSongIDs;
-	// }
+	set Songs(arrayOfSongIDs) {
+	  //TODO: Validation
+	  this._songs = arrayOfSongIDs;
+	}
 
 	pushSingleSong (songID, trackID) {
 		this._songs.set(songID, trackID);
