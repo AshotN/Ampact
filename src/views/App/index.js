@@ -49,8 +49,6 @@ export default class App extends React.Component {
 	this.playNextSong = this.playNextSong.bind(this);
 	this.playPreviousSong = this.playPreviousSong.bind(this);
 	this.playSong = this.playSong.bind(this);
-	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
-	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 	this.searchHandle = this.searchHandle.bind(this);
 
@@ -382,7 +380,7 @@ export default class App extends React.Component {
 	  this.state.soundHowl.seek(value * duration);
 	}
   }
-  
+
   closeApplication() {
 	remote.getCurrentWindow().close();
   }
