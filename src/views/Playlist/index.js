@@ -13,11 +13,22 @@ export default class PlaylistView extends React.Component {
 	  thePlaylist: null
 	};
 
-	this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
-
 	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
 	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
+	this.onPlaySong = this.onPlaySong.bind(this);
 
+  }
+
+  componentDidMount() {
+	this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+  }
+
+  componentWillReceiveProps(nextProps) {
+	console.log("BBY NO!", this.props.routeParams.playlistID, nextProps.routeParams.playlistID);
+	if(this.props.routeParams.playlistID != nextProps.routeParams.playlistID) {
+	  this.setState({thePlaylist: null});
+	  this.downloadAndSetPlaylist(nextProps.routeParams.playlistID);
+	}
   }
 
   downloadAndSetPlaylist(playlistID) {
@@ -51,14 +62,6 @@ export default class PlaylistView extends React.Component {
 	});
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log("BBY NO!", this.props.routeParams.playlistID, nextProps.routeParams.playlistID);
-	if(this.props.routeParams.playlistID != nextProps.routeParams.playlistID) {
-	  this.setState({thePlaylist: null});
-	  this.downloadAndSetPlaylist(nextProps.routeParams.playlistID);
-	}
-  }
-
   downloadPlaylist(playlistID, cb) {
     this.props.connection.getPlaylist(playlistID, (err, playlist) => {
 	  if(err) {
@@ -75,13 +78,22 @@ export default class PlaylistView extends React.Component {
 	});
   }
 
+  onPlaySong(AmpacheSongId, playingIndex) {
+	if (typeof this.props.onPlaySong === 'function') {
+	  let playlistSongs = Array.from(this.state.thePlaylist.Songs, (song) => {
+		return song[1];
+	  });
+	  this.props.onPlaySong(AmpacheSongId, playlistSongs, playingIndex);
+	}
+  }
+
   render() {
 	if(this.state.thePlaylist == null) {
 	  return <LoadingSpinner />
 	}
-	let songRows = [];
 
 	let i = 0;
+	let songRows = [];
 	this.state.thePlaylist.Songs.forEach((theSong, playlistTrackID) => {
 	  songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
 					  Index={i} Song={theSong}
@@ -89,7 +101,7 @@ export default class PlaylistView extends React.Component {
 					  playingAmpacheSongId={this.props.playingAmpacheSongId}
 					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 					  currentPlaylistID={this.props.routeParams.playlistID}
-					  onPlaySong={this.props.onPlaySong}
+					  onPlaySong={this.onPlaySong}
 					  format="playlist"
 					  onAddSongToPlaylist={this.addSongToPlaylist}
 					  onRemoveSongFromPlaylist={this.removeSongFromPlaylist}/>);

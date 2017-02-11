@@ -13,6 +13,10 @@ export default class AlbumView extends React.Component {
 	  theAlbum: null
 	};
 
+	this.onPlaySong = this.onPlaySong.bind(this);
+  }
+
+  componentDidMount() {
 	this.downloadAlbum(this.props.routeParams.albumID, (err, ourAlbum) => {
 	  //TODO: HANDLE ERROR
 	  this.setState({theAlbum: ourAlbum});
@@ -35,13 +39,22 @@ export default class AlbumView extends React.Component {
 	});
   }
 
+  onPlaySong(AmpacheSongId, playingIndex) {
+	if (typeof this.props.onPlaySong === 'function') {
+	  let albumSongs = Array.from(this.state.theAlbum.Songs, (song) => {
+		return song[1];
+	  });
+	  this.props.onPlaySong(AmpacheSongId, albumSongs, playingIndex);
+	}
+  }
+
   render() {
     if(this.state.theAlbum == null) {
       return <LoadingSpinner />
 	}
-	let songRows = [];
 
 	let i = 0;
+	let songRows = [];
 	this.state.theAlbum.Songs.forEach((theSong, albumTrackID) => {
 	  songRows.push(<SongRow key={i}
 							 allPlaylists={this.props.allPlaylists} //Needed for context menu
@@ -49,13 +62,12 @@ export default class AlbumView extends React.Component {
 							 albumTrackID={albumTrackID}
 							 playingAmpacheSongId={this.props.playingAmpacheSongId}
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}
-							 onPlaySong={this.props.onPlaySong}
+							 onPlaySong={this.onPlaySong}
 							 format="album"
 							 onAddSongToPlaylist={this.props.onAddSongToPlaylist}
 							 onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
 	  i++;
 	});
-
 	return (
 		<div className='albumView'>
 		  <div className='sideInfo'>

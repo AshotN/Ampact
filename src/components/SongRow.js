@@ -63,9 +63,9 @@ class SongRow extends Component {
 	menu.popup(remote.getCurrentWindow());
   }
 
-  playSong(AmpacheSongId, URL, playingIndex) {
+  playSong(AmpacheSongId, playingIndex) {
 	if (typeof this.props.onPlaySong === 'function') {
-	  this.props.onPlaySong(AmpacheSongId, URL, playingIndex);
+	  this.props.onPlaySong(AmpacheSongId, playingIndex);
 	}
   }
 

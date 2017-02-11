@@ -160,16 +160,21 @@ class Footer extends Component {
 	let durationMins = ~~(durationTime / 60);
 	let durationSecs = ~~(durationTime % 60);
 
+	let disabled = true;
+	if(this.props.isPlaying || this.props.isLoading || this.props.isPaused) {
+	  disabled = false;
+	}
+
 	return (
 		<div className='footer' onMouseUp={this.onMouseUp} onMouseMove={this.onMouseMove}>
 		  <div className='previousSong'>
-			<div onClick={(e) => this.previousSong(e)}/>
+			<div onClick={(e) => {if(!disabled) this.previousSong(e)}} disabled={disabled}/>
 		  </div>
 		  <div className='playPauseButton'>
 			<div className={this.props.isPlaying ? 'pause' : 'play'} onClick={(e) => this.playPauseSong(e)}/>
 		  </div>
 		  <div className='nextSong'>
-			<div onClick={(e) => this.nextSong(e)}/>
+			<div onClick={(e) => {if(!disabled)this.nextSong(e)}} disabled={disabled}/>
 		  </div>
 		  <div onMouseDown={this.onSeekMouseDown} id='seekerControl' className='seekerArea'>
 			<div style={{width: (this.state.seekBarPos * 100) + '%'}} className='seeker'></div>

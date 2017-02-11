@@ -34,6 +34,7 @@ export default class App extends React.Component {
 	  volume: 0.5,
 	  playingHowlID: -1,
 	  playingIndex: -1,
+	  queue: [],
 	  playingSongDuration: -1,
 	  loadingAmpacheSongId: -1,
 	  playingAmpacheSongId: -1,
@@ -201,11 +202,11 @@ export default class App extends React.Component {
 
   /**
    * Play the specified song
-   * @param {Number} AmpacheSongID
-   * @param {Number} playingIndex
+   * @param {Number} AmpacheSongID - The ID of the song to play
+   * @param {Array} newQueue - An Array containing the songs that will be played after, as well as if the user clicks on the previous song button
+   * @param {Number} playingIndex - Where along the queue are we
    * */
-  playSong(AmpacheSongID, playingIndex) {
-
+  playSong(AmpacheSongID, newQueue, playingIndex) {
     AmpacheSongID = parseInt(AmpacheSongID);
 	let URL = this.state.allSongs.get(AmpacheSongID).URL;
 
@@ -214,14 +215,15 @@ export default class App extends React.Component {
 	this.stopPlaying((cb) => {
 	  this.setState({
 		isLoading: true,
-		loadingAmpacheSongId: AmpacheSongID
+		loadingAmpacheSongId: AmpacheSongID,
+		playingIndex: playingIndex
 	  }, () => {
 		let re = /(?:\.([^.]+))?$/;
 
 		let ext = re.exec(URL)[1];
 
 		if (ext == 'flac') {
-		  var player = AV.Player.fromURL(URL);
+		  let player = AV.Player.fromURL(URL);
 		  player.preload();
 		  player.volume = this.state.volume * 100;
 		  player.on('end', () => {
@@ -237,7 +239,6 @@ export default class App extends React.Component {
 			  isPaused: false,
 			  isStopped: false,
 			  playingHowlID: -1,
-			  playingIndex: playingIndex,
 			  playerObject: player,
 			  playingAmpacheSongId: parseInt(AmpacheSongID),
 			  FLAC: 1
@@ -261,6 +262,7 @@ export default class App extends React.Component {
 				isPlaying: true,
 				isPaused: false,
 				isStopped: false,
+				queue: newQueue,
 				playingHowlID: howlID,
 				playingIndex: playingIndex,
 				playingAmpacheSongId: parseInt(AmpacheSongID),
@@ -277,7 +279,6 @@ export default class App extends React.Component {
 				isPaused: false,
 				isStopped: true,
 				soundHowl: null,
-				playingIndex: -1,
 				playingAmpacheSongId: -1,
 				loadingAmpacheSongId: -1,
 				playingHowlID: -1
@@ -293,11 +294,13 @@ export default class App extends React.Component {
 
   //**** you Javascript and your lack of overloading!
   playSongByPlayingIndex(playingIndex) {
-	let ourNewSong = this.state.allSongs.get(playingIndex);
-	if (ourNewSong === undefined) {
+	let ourNewSong = this.state.queue[playingIndex];
+	console.log(ourNewSong, this.state.queue, playingIndex);
+	if (this.state.queue.length != 0 && this.state.queue.length <= playingIndex) {
+	  console.log(this.state.queue.length, playingIndex);
 	  return this.stopPlaying();
 	}
-	this.playSong(ourNewSong.ID, playingIndex)
+	this.playSong(ourNewSong.ID, this.state.queue, playingIndex)
   }
 
   songIsOver (e) {
@@ -315,7 +318,6 @@ export default class App extends React.Component {
 		  isPaused: false,
 		  isStopped: true,
 		  playerObject: null,
-		  playingIndex: -1,
 		  playingAmpacheSongId: -1,
 		  FLAC: 0
 		}, () => {
@@ -332,7 +334,6 @@ export default class App extends React.Component {
 		  isPaused: false,
 		  isStopped: true,
 		  soundHowl: null,
-		  playingIndex: -1,
 		  playingAmpacheSongId: -1,
 		  playingHowlID: -1,
 		}, () => {
