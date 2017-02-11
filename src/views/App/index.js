@@ -52,6 +52,7 @@ export default class App extends React.Component {
 	this.playSong = this.playSong.bind(this);
 	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 	this.searchHandle = this.searchHandle.bind(this);
+	this.newPlaylist = this.newPlaylist.bind(this);
 
 	shortcuts({
 	  playPauseSong: this.playPauseSong
@@ -396,6 +397,10 @@ export default class App extends React.Component {
 	}
   }
 
+  newPlaylist() {
+	console.log("NEW PLAYLIST");
+  }
+
   render() {
 	return (
 		<div>
@@ -407,7 +412,7 @@ export default class App extends React.Component {
 			</div>
 		  </div>
 		  <div className='main'>
-			<Sidebar sidebar={<SidebarContent allPlaylists={this.state.allPlaylists}/>}
+			<Sidebar sidebar={<SidebarContent allPlaylists={this.state.allPlaylists} newPlaylist={this.newPlaylist} />}
 					 open={this.state.sidebarOpen}
 					 docked={this.state.docked}
 					 transitions={this.state.transitions}

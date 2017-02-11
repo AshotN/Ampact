@@ -6,28 +6,34 @@
 }
 .songRowWrapper
 	.songRowHeaders
-		width: 99%;
-		text-align: center;
-		margin: 0 auto;
-		height 35px
+		width: 100%;
+		height: 35px;
+		min-width: 800px;
 		div
-			color: #808080;
 			padding: 10px 0;
-			position absolute
+			position: relative;
+			display: inline-block;
+			color: white;
 	.playlistHeaders
 		.song
 			left 15%
+			width 29%
 		.artist
-			left 45%
+			left 16%
+			width 29%
 		.album
-			left 75%
+			left 17%
+			width 24%
 	.albumHeaders
 		.albumTrackNumber
-			left 2%
+			left 5%
+			width 2%
 		.song
 			left 5%
+			width 71%
 		.time
-			left 15%
+			left 19%
+			width 5%
 	.songs
 		min-width 800px
 		color white
@@ -56,7 +62,6 @@
 
 			.songWrapper
 				position relative
-				width 28%
 				height 40px
 				display inline-block
 				div
@@ -68,21 +73,27 @@
 
 			.playlistTitleWrapper
 				left: 15%;
+				width 29%
 
 			.playlistArtistWrapper
-				left: 17%;
+				left: 16%;
+				width 29%
 
 			.playlistAlbumWrapper
-				left: 19%;
+				left: 17%;
+				width 24%
 
 			.albumTrackWrapper
-				left: 7%;
+				left: 5%;
+				width 2%
 
 			.albumTitleWrapper
 				left: 5%;
+				width 71%
 
 			.albumDurationWrapper
 				left: 19%;
+				width 5%
 
 			.songArtist:hover, .songAlbum:hover
 				color: secondaryColor;

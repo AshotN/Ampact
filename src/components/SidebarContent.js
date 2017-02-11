@@ -37,7 +37,6 @@ class SidebarContent extends Component {
 	});
   }
 
-
   render() {
 	// let playlists = [];
 	// this.props.playlists.forEach((value) => {
@@ -71,6 +70,9 @@ class SidebarContent extends Component {
 			<div className='playlists'>
 			  <span className='title'>Playlists</span>
 			  {playlistButtons}
+			</div>
+			<div className='createPlaylist'>
+			  <button onClick={(e) => this.props.newPlaylist()}><img src='assets//images//plusIcon.png' />New Playlist</button>
 			</div>
 		  </div>
 		  <div className='settings'>
