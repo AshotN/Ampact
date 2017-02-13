@@ -22,17 +22,18 @@ class Footer extends Component {
   }
 
   componentDidUpdate(prevProps) {
-	if (prevProps.isLoading && this.props.isPlaying) {
-	  this.clearSeekBar();
-	  this.startSeekBar();
-	} else if (prevProps.isPlaying && this.props.isPaused) {
-	  this.pauseSeekBar();
-	} else if (prevProps.isPlaying && this.props.isStopped) {
-	  this.clearSeekBar();
-	} else if (prevProps.isPaused && this.props.isPlaying) {
-	  this.startSeekBar();
+    if(!this.props.FLAC) {
+	  if (prevProps.isLoading && this.props.isPlaying) {
+		this.clearSeekBar();
+		this.startSeekBar();
+	  } else if (prevProps.isPlaying && this.props.isPaused) {
+		this.pauseSeekBar();
+	  } else if (prevProps.isPlaying && this.props.isStopped) {
+		this.clearSeekBar();
+	  } else if (prevProps.isPaused && this.props.isPlaying) {
+		this.startSeekBar();
+	  }
 	}
-
   }
 
 
@@ -112,14 +113,14 @@ class Footer extends Component {
 
   onVolumeMouseDown(e) {
 	let volumePos = this.getPosition(e, 'volumeControl');
-	this.state.volumeDrag = true;
-	this.setState({volumeBarPos: volumePos});
+	this.setState({volumeBarPos: volumePos, volumeDrag: true});
 	this.changeVolume(volumePos);
   }
 
   onSeekMouseDown(e) {
-	this.state.seekDrag = true;
-	this.setState({seekBarPos: this.getPosition(e, 'seekerControl')});
+    if(!this.props.FLAC) {
+	  this.setState({seekBarPos: this.getPosition(e, 'seekerControl'), seekDrag: true});
+	}
   }
 
   onMouseMove(e) {

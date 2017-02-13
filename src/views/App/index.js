@@ -245,7 +245,9 @@ export default class App extends React.Component {
 			  isStopped: false,
 			  playingHowlID: -1,
 			  playerObject: player,
+			  playingIndex: playingIndex,
 			  playingAmpacheSongId: parseInt(AmpacheSongID),
+			  loadingAmpacheSongId: -1,
 			  FLAC: 1
 			});
 		  });
@@ -493,6 +495,7 @@ export default class App extends React.Component {
 			</Sidebar>
 		  </div>
 		  <Footer root={this.props.route.path} onPlayPauseSong={this.playPauseSong}
+				  FLAC={this.state.FLAC}
 				  onPreviousSong={this.playPreviousSong}
 				  onNextSong={this.playNextSong}
 				  songDuration={this.state.playingSongDuration}
