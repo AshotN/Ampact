@@ -39,27 +39,21 @@ export default class PlaylistView extends React.Component {
   }
 
   addSongToPlaylist(AmpacheSongID, Playlist) {
-	this.props.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, cb) => {
-	  if (err) {
-		//TODO: HANDLE ERRORS!
-		console.err(err);
-		return false;
-	  }
-	  this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
-	});
+	if (typeof this.props.onAddSongToPlaylist === 'function') {
+	  this.props.onAddSongToPlaylist(AmpacheSongID, Playlist, (err, response) => {
+	    //TODO: ERROR HANDLING
+		this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+	  });
+	}
   }
 
   removeSongFromPlaylist(PlaylistTrackNumber) {
-    console.log(PlaylistTrackNumber, this.props.routeParams.playlistID);
-	this.props.connection.removeSongFromPlaylist(this.props.routeParams.playlistID, PlaylistTrackNumber, (err, cb) => {
-	  if (err) {
-		//TODO: HANDLE ERRORS!
-		console.err(err);
-		return false;
-	  }
-	  console.log("REMOVED");
-	  this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
-	});
+	if (typeof this.props.onRemoveSongFromPlaylist === 'function') {
+	  this.props.onRemoveSongFromPlaylist(this.props.routeParams.playlistID, PlaylistTrackNumber, (err, response) => {
+		//TODO: ERROR HANDLING
+		this.downloadAndSetPlaylist(this.props.routeParams.playlistID);
+	  });
+	}
   }
 
   downloadPlaylist(playlistID, cb) {
@@ -103,8 +97,8 @@ export default class PlaylistView extends React.Component {
 					  currentPlaylistID={this.props.routeParams.playlistID}
 					  onPlaySong={this.onPlaySong}
 					  format="playlist"
-					  onAddSongToPlaylist={this.addSongToPlaylist}
-					  onRemoveSongFromPlaylist={this.removeSongFromPlaylist}/>);
+					  addSongToPlaylist={this.addSongToPlaylist}
+					  removeSongFromPlaylist={this.removeSongFromPlaylist}/>);
 	  i++;
 	});
 	return (

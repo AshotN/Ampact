@@ -55,6 +55,8 @@ export default class App extends React.Component {
 	this.searchHandle = this.searchHandle.bind(this);
 	this.newPlaylist = this.newPlaylist.bind(this);
 	this.deletePlaylist = this.deletePlaylist.bind(this);
+	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
+	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
 
 	shortcuts({
 	  playPauseSong: this.playPauseSong
@@ -107,11 +109,11 @@ export default class App extends React.Component {
   }
 
   showNotificationTop(message, timeout = 5000) {
-	this.setState({topMessage: message});
-
-	setTimeout(() => {
-	  this.setState({topMessage: null});
-	}, timeout)
+	this.setState({topMessage: message}, () => {
+	  setTimeout(() => {
+		this.setState({topMessage: null});
+	  }, timeout)
+	});
   }
 
   /**
@@ -399,13 +401,37 @@ export default class App extends React.Component {
 	}
   }
 
+  addSongToPlaylist(AmpacheSongID, Playlist, cb) {
+	this.state.connection.addSongToPlaylist(Playlist.ID, AmpacheSongID, (err, result) => {
+	  if (err) {
+		//TODO: HANDLE ERRORS!
+		console.err(err);
+		return false;
+	  }
+	  if (typeof cb === 'function') {
+		return cb(err, 'done');
+	  }
+	});
+  }
+
+  removeSongFromPlaylist(PlaylistID, PlaylistTrackNumber, cb) {
+	this.state.connection.removeSongFromPlaylist(PlaylistID, PlaylistTrackNumber, (err, result) => {
+	  if (err) {
+		//TODO: HANDLE ERRORS!
+		console.err(err);
+		return false;
+	  }
+	  return cb(err, 'done');
+	});
+  }
+
   newPlaylist(playlistName) {
 	this.state.connection.createPlaylist(playlistName, (err, playlistID) => {
 	  if(err) {
 	    console.error(err);
 	    return this.showNotificationTop("Failed to create playlist");
 	  }
-	  this.showNotificationTop("Create Playlist: " + playlistName);
+	  this.showNotificationTop("Created Playlist: " + playlistName || "Blank");
 	  let newPlaylists = new Map(this.state.allPlaylists);
 	  newPlaylists.set(playlistID, new Playlist(playlistID, playlistName));
 	  this.setState({allPlaylists: newPlaylists}); //Consider just redownloading playlist list instead

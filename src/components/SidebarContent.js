@@ -16,7 +16,9 @@ class SidebarContent extends Component {
 	  transitions: false,
 	  showNewPlaylistPrompt: false,
 	  confirmPlaylistDelete: false,
-	  playlistIDToDelete: null
+	  playlistIDToDelete: null,
+	  confirmDuplicatePrompt: false,
+	  newPlaylistName: null
 	};
   }
 
@@ -87,6 +89,7 @@ class SidebarContent extends Component {
 
 	return (
 		<div>
+		  {/*Clicked on the New Playlist button*/}
 		  <SweetAlert
 			  show={this.state.showNewPlaylistPrompt}
 			  title="New Playlist"
@@ -98,41 +101,48 @@ class SidebarContent extends Component {
 			  onConfirm={(inputValue) => {
 				console.log(inputValue);
 				if (playlistNames.indexOf(inputValue) != -1) {
-				  swal({
-						title: "Duplicate",
-						text: "A Playlist with that name already exists",
-						type: "info",
-						showCancelButton: true,
-						confirmButtonColor: "#DD6B55",
-						confirmButtonText: "Yes, create it!"
-					  },
-					  function(){
-						this.setState({ showNewPlaylistPrompt: false });
-						this.props.newPlaylist(inputValue);
-					  }.bind(this));
-				  return;
+				  this.setState({confirmDuplicatePrompt: true, newPlaylistName: inputValue});
+				} else if(inputValue === "") {
+				  swal.showInputError("Blank names don't work well with Ampache");
+				} else {
+				  this.setState({showNewPlaylistPrompt: false});
+				  this.props.newPlaylist(inputValue);
 				}
-				this.setState({ showNewPlaylistPrompt: false });
-				this.props.newPlaylist(inputValue);
 			  }}
 			  onCancel={() => this.setState({ showNewPlaylistPrompt: false })}
-			  onEscapeKey={() => this.setState({ showNewPlaylist: false })}
-			  onOutsideClick={() => this.setState({ showNewPlaylist: false })}
+			  onEscapeKey={() => this.setState({ showNewPlaylistPrompt: false })}
+			  onOutsideClick={() => this.setState({ showNewPlaylistPrompt: false })}
 		  />
+		  {/*A playlist with that name existed already*/}
+		  <SweetAlert
+			  show={this.state.confirmDuplicatePrompt}
+			  title="Duplicate"
+			  text="A Playlist with that name already exists"
+			  type="info"
+			  showCancelButton
+			  confirmButtonColor="#DD6B55"
+			  confirmButtonText="Yes, create it!"
+			  onConfirm={() => {
+				this.setState({showNewPlaylistPrompt: false, confirmDuplicatePrompt: false});
+				this.props.newPlaylist(this.state.newPlaylistName);
+			  }}
+			  onCancel={() => {this.setState({showNewPlaylistPrompt: false, confirmDuplicatePrompt: false});}}
+		  />
+		  {/*You sure you wanna delete that playlist?*/}
 		  <SweetAlert
 			  show={this.state.confirmPlaylistDelete}
 			  type='warning'
 			  title="Delete Playlist"
 			  text="Are you sure you want to delete the playlist"
 			  showCancelButton
-			  onCancel={() => this.setState({ confirmPlaylistDelete: false })}
-			  onEscapeKey={() => this.setState({ confirmPlaylistDelete: false })}
-			  onOutsideClick={() => this.setState({ confirmPlaylistDelete: false })}
+			  onCancel={() => this.setState({ confirmPlaylistDelete: false, playlistIDToDelete: null })}
+			  onEscapeKey={() => this.setState({ confirmPlaylistDelete: false, playlistIDToDelete: null })}
+			  onOutsideClick={() => this.setState({ confirmPlaylistDelete: false, playlistIDToDelete: null })}
 			  confirmButtonColor='#DD6B55'
 		  	  confirmButtonText="Yes, delete it!"
 			  onConfirm={() => {
 				this.props.deletePlaylist(this.state.playlistIDToDelete);
-				this.setState({ confirmPlaylistDelete: false })
+				this.setState({ confirmPlaylistDelete: false, playlistIDToDelete: null })
 			  }}
 		  />
 		  <div className='sidebarTitle'>Ampact</div>

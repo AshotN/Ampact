@@ -24,7 +24,7 @@ class SongRow extends Component {
 		addToPlaylistEntry.push({
 		  label: Playlist.Name,
 		  click() {
-			that.props.onAddSongToPlaylist(Song.ID, Playlist);
+			that.props.addSongToPlaylist(Song.ID, Playlist);
 		  }
 		})
 	  }
@@ -54,7 +54,7 @@ class SongRow extends Component {
 		  {
 			label: 'Remove From This Playlist',
 			click () {
-			  that.props.onRemoveSongFromPlaylist(that.props.playlistTrackID);
+			  that.props.removeSongFromPlaylist(that.props.playlistTrackID);
 			}
 		  });
 	}
@@ -140,7 +140,7 @@ SongRow.propTypes = {
   Index: React.PropTypes.number.isRequired,
   playingAmpacheSongId: React.PropTypes.number.isRequired,
   onPlaySong: React.PropTypes.func.isRequired,
-  onAddSongToPlaylist: React.PropTypes.func
+  addSongToPlaylist: React.PropTypes.func.isRequired
   // onFavSong: React.PropTypes.func.isRequired
 };
 

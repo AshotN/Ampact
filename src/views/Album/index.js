@@ -8,7 +8,6 @@ export default class AlbumView extends React.Component {
 
   constructor(props) {
 	super(props);
-
 	this.state = {
 	  theAlbum: null
 	};
@@ -64,8 +63,7 @@ export default class AlbumView extends React.Component {
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 							 onPlaySong={this.onPlaySong}
 							 format="album"
-							 onAddSongToPlaylist={this.props.onAddSongToPlaylist}
-							 onRemoveSongFromPlaylist={this.props.onRemoveSongFromPlaylist}/>);
+							 addSongToPlaylist={this.props.onAddSongToPlaylist}/>);
 	  i++;
 	});
 	return (
