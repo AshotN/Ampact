@@ -2,7 +2,9 @@ import {Component} from 'react'
 import classNames from 'classnames';
 const BrowserWindow = require('electron').remote.BrowserWindow;
 import {Link} from 'react-router';
-import Sidebar from 'react-sidebar'
+import SweetAlert from 'sweetalert-react';
+const remote = require('electron').remote;
+const Menu = remote.Menu;
 
 class SidebarContent extends Component {
   constructor(props) {
@@ -11,7 +13,10 @@ class SidebarContent extends Component {
 	this.state = {
 	  sidebarOpen: true,
 	  docked: true,
-	  transitions: false
+	  transitions: false,
+	  showNewPlaylistPrompt: false,
+	  confirmPlaylistDelete: false,
+	  playlistIDToDelete: null
 	};
   }
 
@@ -37,6 +42,25 @@ class SidebarContent extends Component {
 	});
   }
 
+  playlistContextMenu(e, Playlist) {
+	e.preventDefault();
+
+	let that = this;
+
+	let template = [
+	  {
+		label: 'Delete',
+		click () {
+		  console.log(Playlist);
+		  that.setState({confirmPlaylistDelete: true, playlistIDToDelete: parseInt(Playlist.ID)});
+		}
+	  }
+	];
+
+	const menu = Menu.buildFromTemplate(template);
+	menu.popup(remote.getCurrentWindow());
+  }
+
   render() {
 	// let playlists = [];
 	// this.props.playlists.forEach((value) => {
@@ -50,15 +74,67 @@ class SidebarContent extends Component {
 	// let favoriteClasses = classNames('favoriteButton', {'currentPlaylist': this.props.currentPlaylist == 999});
 
 	let playlistButtons = [];
+	let playlistNames = [];
 
-	this.props.allPlaylists.forEach((object, i) => {
-	  playlistButtons.push(<Link key={object.ID} to={{pathname: `/playlist/${object.ID}`}}>
-		<button className='playlistButton' key={object.ID}>{object.Name} - {object.ID}</button>
+	this.props.allPlaylists.forEach((playlist, i) => {
+	  playlistNames.push(playlist.Name);
+	  playlistButtons.push(<Link onContextMenu={(e, Song) => this.playlistContextMenu(e, playlist)} key={playlist.ID} to={{pathname: `/playlist/${playlist.ID}`}}>
+		<button className='playlistButton' key={playlist.ID}>{playlist.Name} - {playlist.ID}</button>
 	  </Link>);
 	});
 
+
+
 	return (
 		<div>
+		  <SweetAlert
+			  show={this.state.showNewPlaylistPrompt}
+			  title="New Playlist"
+			  text="What is the name of your new playlist"
+			  type='input'
+			  inputPlaceholder="Playlist Name"
+			  showCancelButton
+			  confirmButtonColor='#03A9F4'
+			  onConfirm={(inputValue) => {
+				console.log(inputValue);
+				if (playlistNames.indexOf(inputValue) != -1) {
+				  swal({
+						title: "Duplicate",
+						text: "A Playlist with that name already exists",
+						type: "info",
+						showCancelButton: true,
+						confirmButtonColor: "#DD6B55",
+						confirmButtonText: "Yes, create it!"
+					  },
+					  function(){
+						this.setState({ showNewPlaylistPrompt: false });
+						this.props.newPlaylist(inputValue);
+					  }.bind(this));
+				  return;
+				}
+				this.setState({ showNewPlaylistPrompt: false });
+				this.props.newPlaylist(inputValue);
+			  }}
+			  onCancel={() => this.setState({ showNewPlaylistPrompt: false })}
+			  onEscapeKey={() => this.setState({ showNewPlaylist: false })}
+			  onOutsideClick={() => this.setState({ showNewPlaylist: false })}
+		  />
+		  <SweetAlert
+			  show={this.state.confirmPlaylistDelete}
+			  type='warning'
+			  title="Delete Playlist"
+			  text="Are you sure you want to delete the playlist"
+			  showCancelButton
+			  onCancel={() => this.setState({ confirmPlaylistDelete: false })}
+			  onEscapeKey={() => this.setState({ confirmPlaylistDelete: false })}
+			  onOutsideClick={() => this.setState({ confirmPlaylistDelete: false })}
+			  confirmButtonColor='#DD6B55'
+		  	  confirmButtonText="Yes, delete it!"
+			  onConfirm={() => {
+				this.props.deletePlaylist(this.state.playlistIDToDelete);
+				this.setState({ confirmPlaylistDelete: false })
+			  }}
+		  />
 		  <div className='sidebarTitle'>Ampact</div>
 		  <div>
 			<div className='defaultPlaylists'>
@@ -72,7 +148,7 @@ class SidebarContent extends Component {
 			  {playlistButtons}
 			</div>
 			<div className='createPlaylist'>
-			  <button onClick={(e) => this.props.newPlaylist()}><img src='assets//images//plusIcon.png' />New Playlist</button>
+			  <button onClick={(e) => this.setState({showNewPlaylistPrompt: true})}><img src='assets//images//plusIcon.png' />New Playlist</button>
 			</div>
 		  </div>
 		  <div className='settings'>

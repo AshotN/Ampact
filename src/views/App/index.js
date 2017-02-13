@@ -3,6 +3,7 @@ import Sidebar from 'react-sidebar';
 import retry from 'async/retry';
 import storage from 'electron-json-storage';
 import {Ampache} from '../../logic/Ampache';
+import {Playlist} from '../../logic/Playlist';
 import {Howl} from 'howler';
 import _ from 'lodash'
 
@@ -53,6 +54,7 @@ export default class App extends React.Component {
 	this.searchBarHandleChange = this.searchBarHandleChange.bind(this);
 	this.searchHandle = this.searchHandle.bind(this);
 	this.newPlaylist = this.newPlaylist.bind(this);
+	this.deletePlaylist = this.deletePlaylist.bind(this);
 
 	shortcuts({
 	  playPauseSong: this.playPauseSong
@@ -397,8 +399,31 @@ export default class App extends React.Component {
 	}
   }
 
-  newPlaylist() {
-	console.log("NEW PLAYLIST");
+  newPlaylist(playlistName) {
+	this.state.connection.createPlaylist(playlistName, (err, playlistID) => {
+	  if(err) {
+	    console.error(err);
+	    return this.showNotificationTop("Failed to create playlist");
+	  }
+	  this.showNotificationTop("Create Playlist: " + playlistName);
+	  let newPlaylists = new Map(this.state.allPlaylists);
+	  newPlaylists.set(playlistID, new Playlist(playlistID, playlistName));
+	  this.setState({allPlaylists: newPlaylists}); //Consider just redownloading playlist list instead
+	});
+  }
+
+  deletePlaylist(playlistID) {
+	this.state.connection.deletePlaylist(playlistID, (err, status) => {
+	  if(err) {
+		console.error(err);
+		return this.showNotificationTop("Failed to delete playlist");
+	  }
+	  this.showNotificationTop("Deleted Playlist");
+	  let newPlaylists = new Map(this.state.allPlaylists);
+	  newPlaylists.delete(playlistID);
+	  console.log(newPlaylists);
+	  this.setState({allPlaylists: newPlaylists}); //Consider just redownloading playlist list instead
+	});
   }
 
   render() {
@@ -412,7 +437,8 @@ export default class App extends React.Component {
 			</div>
 		  </div>
 		  <div className='main'>
-			<Sidebar sidebar={<SidebarContent allPlaylists={this.state.allPlaylists} newPlaylist={this.newPlaylist} />}
+			<Sidebar sidebar={<SidebarContent allPlaylists={this.state.allPlaylists} newPlaylist={this.newPlaylist}
+											  deletePlaylist={this.deletePlaylist}/>}
 					 open={this.state.sidebarOpen}
 					 docked={this.state.docked}
 					 transitions={this.state.transitions}

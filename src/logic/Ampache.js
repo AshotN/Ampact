@@ -396,4 +396,42 @@ export class Ampache {
 	});
   }
 
+  createPlaylist(playlistName, cb) {
+	console.log(playlistName, `${this.server}/server/json.server.php?action=playlist_create&name=${playlistName}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=playlist_create&name=${playlistName}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
+
+		if (JSONData.error != null) {
+		  let error = new Error(JSONData.error.message, JSONData.error.code);
+		  return cb(error, null);
+		}
+		else {
+		  console.log(JSONData);
+		  cb(null, parseInt(JSONData[0].playlist.id));
+		}
+	  }
+
+	});
+  }
+
+  deletePlaylist(playlistID, cb) {
+	console.log(playlistID, `${this.server}/server/json.server.php?action=playlist_delete&filter=${playlistID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=playlist_delete&filter=${playlistID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
+
+		if (JSONData.error != null) {
+		  let error = new Error(JSONData.error.message, JSONData.error.code);
+		  return cb(error, null);
+		}
+		else {
+		  console.log(JSONData);
+		  cb(null, JSONData.message);
+		}
+	  }
+
+	});
+  }
+
 }
