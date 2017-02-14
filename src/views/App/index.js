@@ -5,7 +5,6 @@ import storage from 'electron-json-storage';
 import {Ampache} from '../../logic/Ampache';
 import {Playlist} from '../../logic/Playlist';
 import {Howl} from 'howler';
-import _ from 'lodash'
 
 const remote = require('electron').remote;
 
@@ -39,7 +38,6 @@ export default class App extends React.Component {
 	  playingSongDuration: -1,
 	  loadingAmpacheSongId: -1,
 	  playingAmpacheSongId: -1,
-	  FLAC: 0,
 	  searchValue: null,
 	  topMessage: null,
 	  noCredentials: false
@@ -57,6 +55,8 @@ export default class App extends React.Component {
 	this.deletePlaylist = this.deletePlaylist.bind(this);
 	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
 	this.removeSongFromPlaylist = this.removeSongFromPlaylist.bind(this);
+	this.addtoQueue = this.addtoQueue.bind(this);
+
 
 	shortcuts({
 	  playPauseSong: this.playPauseSong
@@ -84,13 +84,14 @@ export default class App extends React.Component {
 		  let randomAlbums = new Map();
 		  let uniqueNums = [];
 		  let randomNum;
+		  let allAlbumKeys = Array.from(allAlbums.keys());
 		  for (let i = 0; i < 5; i++) {
 			do
 			  randomNum = ~~((Math.random() * allAlbums.size) + 1);
 			while (uniqueNums.indexOf(randomNum) !== -1);
 
 			uniqueNums.push(randomNum);
-			randomAlbums.set(i, allAlbums.get(randomNum));
+			randomAlbums.set(randomNum, allAlbums.get(allAlbumKeys[randomNum]));
 		  }
 		  this.setState({albumsForHome: randomAlbums});
 		});
@@ -180,27 +181,13 @@ export default class App extends React.Component {
 
   playPauseSong() {
 	if (this.state.isPlaying) {
-	  if (this.state.FLAC) {
-		this.state.playerObject.pause();
-	  }
-	  else {
-		this.state.soundHowl.pause(this.state.playingHowlID);
-	  }
-
+	  this.state.soundHowl.pause(this.state.playingHowlID);
 	  this.setState({isPlaying: false, isPaused: true, isStopped: false});
 
 	}
 	else if (this.state.isPaused) {
-	  if (this.state.FLAC) {
-		this.state.playerObject.volume = this.state.volume * 100;
-		this.state.playerObject.play();
-
-	  }
-	  else {
-		this.state.soundHowl.volume(this.state.volume);
-		this.state.soundHowl.play(this.state.playingHowlID);
-	  }
-
+	  this.state.soundHowl.volume(this.state.volume);
+	  this.state.soundHowl.play(this.state.playingHowlID);
 	  this.setState({isPlaying: true, isPaused: false, isStopped: false});
 	}
   }
@@ -223,37 +210,6 @@ export default class App extends React.Component {
 		loadingAmpacheSongId: AmpacheSongID,
 		playingIndex: playingIndex
 	  }, () => {
-		let re = /(?:\.([^.]+))?$/;
-
-		let ext = re.exec(URL)[1];
-
-		if (ext == 'flac') {
-		  let player = AV.Player.fromURL(URL);
-		  player.preload();
-		  player.volume = this.state.volume * 100;
-		  player.on('end', () => {
-			this.songIsOver();
-		  });
-		  player.on('buffer', (percent) => {
-		  });
-		  player.on('ready', () => {
-			player.play();
-			this.setState({
-			  isLoading: false,
-			  isPlaying: true,
-			  isPaused: false,
-			  isStopped: false,
-			  playingHowlID: -1,
-			  playerObject: player,
-			  playingIndex: playingIndex,
-			  playingAmpacheSongId: parseInt(AmpacheSongID),
-			  loadingAmpacheSongId: -1,
-			  FLAC: 1
-			});
-		  });
-		  player.on('error', (err) => {
-		  });
-		} else {
 		  let sound = new Howl({
 			src: [URL],
 			format: ['mp3'],
@@ -274,7 +230,6 @@ export default class App extends React.Component {
 				playingIndex: playingIndex,
 				playingAmpacheSongId: parseInt(AmpacheSongID),
 				loadingAmpacheSongId: -1,
-				FLAC: 0,
 				soundHowl: sound,
 				playingSongDuration: sound.duration(howlID) * 1000
 			  });
@@ -294,7 +249,6 @@ export default class App extends React.Component {
 			  Howler.unload();
 			}
 		  });
-		}
 	  });
 	});
   }
@@ -318,22 +272,6 @@ export default class App extends React.Component {
   stopPlaying(cb) {
     console.log("Stop");
 	if (this.state.isPlaying) {
-	  if (this.state.FLAC) {
-		this.state.playerObject.stop();
-		this.setState({
-		  isPlaying: false,
-		  isPaused: false,
-		  isStopped: true,
-		  playerObject: null,
-		  playingAmpacheSongId: -1,
-		  FLAC: 0
-		}, () => {
-		  if (typeof cb === 'function') {
-			cb();
-		  }
-		});
-	  }
-	  else {
 		this.state.soundHowl.stop();
 		this.setState({
 		  isLoading: false,
@@ -348,7 +286,6 @@ export default class App extends React.Component {
 			cb();
 		  }
 		});
-	  }
 	}
 	else {
 	  if (this.state.isLoading) {
@@ -373,12 +310,7 @@ export default class App extends React.Component {
   volumeBarChangeEvent(value) {
 	this.setState({volume: value});
 	if (this.state.isPlaying) {
-	  if (this.state.FLAC) {
-		this.state.playerObject.volume = value * 100;
-	  }
-	  else {
-		this.state.soundHowl.volume(value);
-	  }
+	  this.state.soundHowl.volume(value);
 	}
   }
 
@@ -400,7 +332,17 @@ export default class App extends React.Component {
   searchHandle(event) {
 	if (event.key == 'Enter') {
 	  //TODO: Make a search page view
+	  this.context.router.push(`/search/${this.state.searchValue}`)
 	}
+  }
+
+  addtoQueue(Song) {
+    let newQueue = new Array(this.state.queue);
+    let currentPosition = this.state.playingIndex;
+
+    newQueue.splice(currentPosition + 1, 0, Song);
+
+    this.setState({queue: newQueue});
   }
 
   addSongToPlaylist(AmpacheSongID, Playlist, cb) {
@@ -480,6 +422,7 @@ export default class App extends React.Component {
 					  albumsForHome: this.state.albumsForHome,
 					  allAlbums: this.state.allAlbums,
 					  onPlaySong: this.playSong,
+					  addtoQueue: this.addtoQueue,
 					  playingAmpacheSongId: this.state.playingAmpacheSongId,
 					  loadingAmpacheSongId: this.state.loadingAmpacheSongId,
 					  onAddSongToPlaylist: this.addSongToPlaylist,
@@ -495,7 +438,6 @@ export default class App extends React.Component {
 			</Sidebar>
 		  </div>
 		  <Footer root={this.props.route.path} onPlayPauseSong={this.playPauseSong}
-				  FLAC={this.state.FLAC}
 				  onPreviousSong={this.playPreviousSong}
 				  onNextSong={this.playNextSong}
 				  songDuration={this.state.playingSongDuration}

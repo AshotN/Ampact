@@ -85,6 +85,26 @@ export class Ampache {
 
   }
 
+  getArtist(artistID, cb) {
+	console.log(artistID, `${this.server}/server/json.server.php?action=artist&filter=${artistID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=artist&filter=${artistID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
+
+		if (JSONData.error != null) {
+		  let errorCode = JSONData.error.code;
+		  return cb(errorCode, null);
+		}
+		else {
+
+		  cb(null, JSONData[0].artist);
+
+		}
+	  }
+
+	});
+  }
+
   getAlbum(albumID, cb) {
 	console.log(albumID, `${this.server}/server/json.server.php?action=album&filter=${albumID}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=album&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
@@ -157,58 +177,6 @@ export class Ampache {
 		    let songData = entry.song;
 			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
 			songs.set(parseInt(song.ID), song);
-		  });
-		  cb(null, songs);
-
-		}
-	  }
-	});
-  }
-
-  //TODO: Update to Maps instead of Arrays - broken
-  getSongsFromAlbum(albumID, cb) {
-	console.log(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
-	request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
-	  if (!error && response.statusCode == 200) {
-		var JSONData = JSON.parse(body);
-
-		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
-		  return cb(errorCode, null);
-		}
-		else {
-		  let songs = [];
-
-		  JSONData.forEach(function (entry) {
-			// console.log(entry.song);
-			let song = new Song(entry.song);
-			songs.push(song);
-		  });
-		  cb(null, songs);
-
-		}
-	  }
-	});
-  }
-
-  //TODO: Update to Maps instead of Arrays - broken
-  getSongsFromArtist(artistID, cb) {
-	console.log(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`);
-	request(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`, (error, response, body) => {
-	  if (!error && response.statusCode == 200) {
-		var JSONData = JSON.parse(body);
-
-		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
-		  return cb(errorCode, null);
-		}
-		else {
-		  let songs = [];
-
-		  JSONData.forEach(function (entry) {
-			// console.log(entry.song);
-			let song = new Song(entry.song);
-			songs.push(song);
 		  });
 		  cb(null, songs);
 
@@ -297,6 +265,9 @@ export class Ampache {
 		  JSONData.forEach(function (entry) {
 			let songData = entry.song;
 			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
+			if(songs.has(songData.playlisttrack)) {
+			  console.info("PLAYLIST TRACK DUPLICATE!!!");
+			}
 			songs.set(songData.playlisttrack, song);
 		  });
 		  // cb(null, songs);
@@ -311,6 +282,29 @@ export class Ampache {
   getAlbumSongs(albumID, cb) {
 	console.log(albumID, `${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=album_songs&filter=${albumID}&auth=${this.authCode}`, (error, response, body) => {
+	  if (!error && response.statusCode == 200) {
+		let JSONData = JSON.parse(body);
+
+		if (JSONData.error != null) {
+		  return cb(JSONData.error, null);
+		}
+		else {
+		  let songs = new Map();
+
+		  JSONData.forEach(function (entry) {
+			let songData = entry.song;
+			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
+			songs.set(songData.track, song);
+		  });
+		  return cb(null, songs);
+		}
+	  }
+	});
+  }
+
+  getArtistSongs(artistID, cb) {
+	console.log(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`);
+	request(`${this.server}/server/json.server.php?action=artist_songs&filter=${artistID}&auth=${this.authCode}`, (error, response, body) => {
 	  if (!error && response.statusCode == 200) {
 		let JSONData = JSON.parse(body);
 
@@ -370,24 +364,23 @@ export class Ampache {
 	});
   }
 
-  //TODO: Update to Maps instead of Arrays - broken
   searchSongs(searchTerm, cb) {
 	console.log(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`);
 	request(`${this.server}/server/json.server.php?action=search_songs&filter=${searchTerm}&auth=${this.authCode}`, (error, response, body) => {
 	  if (!error && response.statusCode == 200) {
-		var JSONData = JSON.parse(body);
+		let JSONData = JSON.parse(body);
 
 		if (JSONData.error != null) {
-		  var errorCode = JSONData.error.code;
+		  let errorCode = JSONData.error.code;
 		  return cb(errorCode, null);
 		}
 		else {
-		  let songs = [];
+		  let songs = new Map();
 
 		  JSONData.forEach(function (entry) {
-			// console.log(entry.song);
-			let song = new Song(entry.song);
-			songs.push(song);
+			let songData = entry.song;
+			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
+			songs.set(songData.track, song);
 		  });
 		  cb(null, songs);
 

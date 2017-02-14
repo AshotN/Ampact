@@ -41,6 +41,12 @@ class SongRow extends Component {
 		}
 	  },
 	  {
+		label: 'Add to Queue',
+		click () {
+		  that.props.addtoQueue(Song);
+		}
+	  },
+	  {
 		label: 'Playlists',
 		submenu: addToPlaylistEntry
 	  }
@@ -97,8 +103,9 @@ class SongRow extends Component {
 			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
 		  </div>,
 		  <div className='songWrapper playlistArtistWrapper'>
-			<div className='songArtist'
-				 onClick={(e, ampacheArtist) => this.renderArtist(e, this.props.Song.artistID)}>{this.props.Song.Artist}</div>
+			<Link onClick={(e) => e.stopPropagation()} to={{pathname: `/artist/${this.props.Song.artistID}`}}>
+			  <div className='songArtist'>{this.props.Song.Artist}</div>
+			</Link>
 		  </div>,
 		  <div className='songWrapper playlistAlbumWrapper'>
 			<Link onClick={(e) => e.stopPropagation()} to={{pathname: `/album/${this.props.Song.albumID}`}}>

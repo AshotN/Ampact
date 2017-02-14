@@ -96,6 +96,7 @@ export default class PlaylistView extends React.Component {
 					  loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 					  currentPlaylistID={this.props.routeParams.playlistID}
 					  onPlaySong={this.onPlaySong}
+					  addtoQueue={this.props.addtoQueue}
 					  format="playlist"
 					  addSongToPlaylist={this.addSongToPlaylist}
 					  removeSongFromPlaylist={this.removeSongFromPlaylist}/>);
