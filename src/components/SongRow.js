@@ -1,14 +1,12 @@
 import React from 'react';
-import {Component} from 'react'
 const remote = require('electron').remote;
 const Menu = remote.Menu;
-const MenuItem = remote.MenuItem;
 import classNames from 'classnames';
 import {Link} from 'react-router';
 import {Song} from '../logic/Song';
 
 
-class SongRow extends Component {
+class SongRow extends React.Component {
   constructor(props) {
 	super(props);
   }
@@ -72,14 +70,6 @@ class SongRow extends Component {
   playSong(AmpacheSongId, playingIndex) {
 	if (typeof this.props.onPlaySong === 'function') {
 	  this.props.onPlaySong(AmpacheSongId, playingIndex);
-	}
-  }
-
-  renderArtist(e, artistID) {
-	e.preventDefault(); // Let's stop this event.
-	e.stopPropagation(); // Really this time.
-	if (typeof this.props.onRenderArtist === 'function') {
-	  this.props.onRenderArtist(artistID);
 	}
   }
 

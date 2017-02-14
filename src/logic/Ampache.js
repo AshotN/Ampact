@@ -317,7 +317,7 @@ export class Ampache {
 		  JSONData.forEach(function (entry) {
 			let songData = entry.song;
 			let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
-			songs.set(songData.track, song);
+			songs.set(songData.id, song);
 		  });
 		  return cb(null, songs);
 		}
