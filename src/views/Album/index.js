@@ -62,6 +62,7 @@ export default class AlbumView extends React.Component {
 							 playingAmpacheSongId={this.props.playingAmpacheSongId}
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 							 onPlaySong={this.onPlaySong}
+							 addtoQueue={this.props.addtoQueue}
 							 format="album"
 							 addSongToPlaylist={this.props.onAddSongToPlaylist}/>);
 	  i++;

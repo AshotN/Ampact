@@ -337,11 +337,10 @@ export default class App extends React.Component {
   }
 
   addtoQueue(Song) {
-    let newQueue = new Array(this.state.queue);
+    let newQueue = this.state.queue.slice(0); //Make a copy
     let currentPosition = this.state.playingIndex;
 
     newQueue.splice(currentPosition + 1, 0, Song);
-
     this.setState({queue: newQueue});
   }
 
