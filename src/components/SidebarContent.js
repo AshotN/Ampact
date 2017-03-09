@@ -158,12 +158,15 @@ class SidebarContent extends Component {
 			  {playlistButtons}
 			</div>
 			<div className='createPlaylist'>
-			  <button onClick={(e) => this.setState({showNewPlaylistPrompt: true})}><img src='assets//images//plusIcon.png' />New Playlist</button>
+        <button onClick={(e) => this.setState({showNewPlaylistPrompt: true})}>
+          <i className='icon-plus' />
+          New Playlist
+        </button>
 			</div>
 		  </div>
 		  <div className='settings'>
 			<div className='cogWrapper' onClick={(e) => this.openSettings(e)}>
-			  <img src='assets//images//settingsCog.png'/>
+        <i className='icon-cog' />
 			</div>
 		  </div>
 		</div>

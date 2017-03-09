@@ -303,42 +303,42 @@ export default class App extends React.Component {
   }
 
   playNextSong() {
-	//Play the next song by order - A WIP
-	this.playSongByPlayingIndex(this.state.playingIndex + 1);
+    //Play the next song by order - A WIP
+    this.playSongByPlayingIndex(this.state.playingIndex + 1);
   }
 
   playPreviousSong() {
-	//Play the previous song by order - A WIP
-	this.playSongByPlayingIndex(this.state.playingIndex - 1);
+    //Play the previous song by order - A WIP
+    this.playSongByPlayingIndex(this.state.playingIndex - 1);
   }
 
   volumeBarChangeEvent(value) {
-	this.setState({volume: value});
-	if (this.state.isPlaying) {
-	  this.state.soundHowl.volume(value);
-	}
+    this.setState({volume: value});
+    if (this.state.isPlaying) {
+      this.state.soundHowl.volume(value);
+    }
   }
 
   songSeekEvent(value) {
-	if (!this.state.isStopped) {
-	  let duration = this.state.soundHowl.duration(this.state.playingHowlID);
-	  this.state.soundHowl.seek(value * duration);
-	}
+    if (!this.state.isStopped) {
+      let duration = this.state.soundHowl.duration(this.state.playingHowlID);
+      this.state.soundHowl.seek(value * duration);
+    }
   }
 
   closeApplication() {
-	remote.getCurrentWindow().close();
+	  remote.getCurrentWindow().close();
   }
 
   searchBarHandleChange(event) {
-	this.setState({'searchValue': event.target.value});
+    this.setState({'searchValue': event.target.value});
   }
 
   searchHandle(event) {
-	if (event.key == 'Enter') {
-	  //TODO: Make a search page view
-	  this.context.router.push(`/search/${this.state.searchValue}`)
-	}
+    if (event.key == 'Enter') {
+      //TODO: Make a search page view
+      this.context.router.push(`/search/${this.state.searchValue}`)
+    }
   }
 
   addtoQueue(Song) {
@@ -405,9 +405,9 @@ export default class App extends React.Component {
 		<div>
 		  <div className='dragBar'>
 			<input onChange={this.searchBarHandleChange} onKeyPress={this.searchHandle} placeholder="Search..."
-				   className='searchBar'/>
+				className='searchBar'/>
 			<div onClick={this.closeApplication} className='closeApp'>
-			  X
+        <i className='icon-close2' />
 			</div>
 		  </div>
 		  <div className='main'>

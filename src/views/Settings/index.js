@@ -5,59 +5,61 @@ const remote = require('electron').remote;
 module.exports = class SettingsView extends Component {
 
   constructor (props) {
-  super(props);
+    super(props);
 
-  this.state = {
-    serverIP: "",
-    serverUsername: "",
-    serverPassword: ""
-  };
+    this.state = {
+      serverIP: "",
+      serverUsername: "",
+      serverPassword: ""
+    };
 
-  storage.has('ampact', (err, hasKey) => {
-    if(!hasKey){
-      storage.set('ampact', {}, (err) =>{
-      if(err) {
-        //TODO: Proper error handling
+    storage.has('ampact', (err, hasKey) => {
+      if(!hasKey){
+        storage.set('ampact', {}, (err) =>{
+          if(err) {
+            //TODO: Proper error handling
+          }
+        });
+      } else {
+        storage.get('ampact', (err, data) => {
+          if(err) {
+            //TODO: Proper error handling
+          }
+          this.setState(data);
+        });
       }
     });
-    } else {
-    storage.get('ampact', (err, data) => {
-      if(err) {
-      //TODO: Proper error handling
-      }
-      this.setState(data);
-    });
-    }
-  });
 
 
-  this.handleChange = this.handleChange.bind(this);
-  this.saveSettings = this.saveSettings.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.saveSettings = this.saveSettings.bind(this);
 
   }
 
   handleChange(event) {
-  this.setState({ [event.target.id]: event.target.value });
+    this.setState({ [event.target.id]: event.target.value });
   }
 
   closeSettings() {
-  remote.getCurrentWindow().close();
+    remote.getCurrentWindow().close();
   }
 
   saveSettings(){
-  storage.set('ampact', this.state, (err) =>{
-    if(err) {
-    //TODO: Proper error handling
-    }
-  });
+    storage.set('ampact', this.state, (err) =>{
+      if(err) {
+        //TODO: Proper error handling
+      }
+    });
   }
 
   render () {
     return (
       <div className='settingsPage'>
-        <div className='SettingsTitle'>
+        <div className='settingsTitle'>
           <span>Settings</span>
-          <div onClick={this.closeSettings} className='closeSettings'>X</div>
+          <div onClick={this.closeSettings} className='closeSettings'>
+            <i className='icon-close2' />
+          </div>
         </div>
         <div className='fields'>
           <div className='field'>
