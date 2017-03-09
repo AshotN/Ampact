@@ -16,7 +16,7 @@ var paths = {
 
 
 gulp.task('stylus-compile' , function() {
-  console.log("Compiling Stylus".fg(0, 255, 0));
+  console.log('Compiling Stylus'.fg(0, 255, 0));
   return gulp.src(paths.stylusEntry)
     .pipe(stylus())
     .pipe(gulpif(production, cleanCSS({debug: true}, function(details) {
@@ -38,8 +38,7 @@ gulp.task('watch' ,function() {
 gulp.task('default', ['watch', 'stylus-compile']);
 
 
-function errorHandle(error)
-{
-  console.log("Error:"+error.toString().fg(255,0,0));
+function errorHandle(error) {
+  console.log('Error:'+error.toString().fg(255,0,0));
   this.emit('end');
 }

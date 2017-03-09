@@ -2,21 +2,21 @@
 
 export class SongRender {
 
-	constructor(playlistID, songArray) {
+  constructor(playlistID, songArray) {
 
-		//TODO: Some validation
+    //TODO: Some validation
 
-		this._playlistID = playlistID;
-		this._Songs = songArray;
-	}
+    this._playlistID = playlistID;
+    this._Songs = songArray;
+  }
 
-	get playlistID () {
-		return this._playlistID;
-	}
+  get playlistID () {
+    return this._playlistID;
+  }
 
-	get Songs () {
-		return this._Songs
-	}
+  get Songs () {
+    return this._Songs
+  }
 
 
 }

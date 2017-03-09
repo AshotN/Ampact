@@ -23,19 +23,19 @@ export class Song {
    */
   constructor(ampacheID, AlbumName, albumID, ArtistName, artistID, Title, MIME, Bitrate, URL, Favorite, Duration) {
 
-	//TODO: Some validation
+    //TODO: Some validation
 
-	this._ampacheID = ampacheID;
-	this._Album = AlbumName;
-	this._albumID = albumID;
-	this._Artist = ArtistName;
-	this._artistID = artistID;
-	this._Title = Title;
-	this._MIME = MIME;
-	this._Bitrate = Bitrate;
-	this._URL = URL;
-	this._Favorite = Favorite;
-	this._Duration = Duration;
+    this._ampacheID = ampacheID;
+    this._Album = AlbumName;
+    this._albumID = albumID;
+    this._Artist = ArtistName;
+    this._artistID = artistID;
+    this._Title = Title;
+    this._MIME = MIME;
+    this._Bitrate = Bitrate;
+    this._URL = URL;
+    this._Favorite = Favorite;
+    this._Duration = Duration;
   }
 
   /**
@@ -43,50 +43,50 @@ export class Song {
    * @return {number} The ampacheID.
    */
   get ID() {
-	return this._ampacheID;
+    return this._ampacheID;
   }
 
   get Album() {
-	return this._Album;
+    return this._Album;
   }
 
   get albumID() {
-	return this._albumID;
+    return this._albumID;
   }
 
   get Artist() {
-	return this._Artist;
+    return this._Artist;
   }
 
   get artistID() {
-	return this._artistID;
+    return this._artistID;
   }
 
   get Title() {
-	return this._Title;
+    return this._Title;
   }
 
   get Mime() {
-	return this._MIME;
+    return this._MIME;
   }
 
   get Bitrate() {
-	return this._Bitrate;
+    return this._Bitrate;
   }
 
   get URL() {
-	return this._URL;
+    return this._URL;
   }
 
   get Favorite() {
-	return this._Favorite;
+    return this._Favorite;
   }
 
   set Favorite(value) {
-	this._Favorite = value;
+    this._Favorite = value;
   }
 
   get Duration() {
-	return this._Duration;
+    return this._Duration;
   }
 }
