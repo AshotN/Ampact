@@ -35,6 +35,7 @@ export default class App extends React.Component {
 	  playingHowlID: -1,
 	  playingIndex: -1,
 	  queue: [],
+	  qCount: 0,
 	  playingSongDuration: -1,
 	  loadingAmpacheSongId: -1,
 	  playingAmpacheSongId: -1,
@@ -95,14 +96,14 @@ export default class App extends React.Component {
 		  }
 		  this.setState({albumsForHome: randomAlbums});
 		});
-		retry({times: 3, interval: 200}, this.state.connection.getAllSongs, (err, Songs) => {
-		  if (err) {
-			this.showNotificationTop("There was a problem fetching the songs");
-			console.error("There was a problem fetching the songs", err);
-			return;
-		  }
-		  this.setState({allSongs: Songs})
-		});
+		// retry({times: 3, interval: 200}, this.state.connection.getAllSongs, (err, Songs) => {
+		//   if (err) {
+		// 	this.showNotificationTop("There was a problem fetching the songs");
+		// 	console.error("There was a problem fetching the songs", err);
+		// 	return;
+		//   }
+		//   this.setState({allSongs: Songs})
+		// });
 	  });
 	});
 
@@ -200,7 +201,10 @@ export default class App extends React.Component {
    * */
   playSong(AmpacheSongID, newQueue, playingIndex) {
     AmpacheSongID = parseInt(AmpacheSongID);
-	let URL = this.state.allSongs.get(AmpacheSongID).URL;
+
+    if(this.state.qCount > 0) {
+      this.setState({qCount: this.state.qCount - 1});
+	}
 
 	//Stop playing current songs and once that's done
 	//setState that we are now loading a song and wait for the state to be set
@@ -211,7 +215,7 @@ export default class App extends React.Component {
 		playingIndex: playingIndex
 	  }, () => {
 		  let sound = new Howl({
-			src: [URL],
+			src: [newQueue[playingIndex].URL], //Might as well get it from the Queue since we store the whole Song
 			format: ['mp3'],
 			html5: true,
 			volume: this.state.volume,
@@ -255,6 +259,7 @@ export default class App extends React.Component {
 
   //**** you Javascript and your lack of overloading!
   playSongByPlayingIndex(playingIndex) {
+    console.log(this.state);
 	let ourNewSong = this.state.queue[playingIndex];
 	console.log(ourNewSong, this.state.queue, playingIndex);
 	if (this.state.queue.length != 0 && this.state.queue.length <= playingIndex) {
@@ -340,8 +345,8 @@ export default class App extends React.Component {
     let newQueue = this.state.queue.slice(0); //Make a copy
     let currentPosition = this.state.playingIndex;
 
-    newQueue.splice(currentPosition + 1, 0, Song);
-    this.setState({queue: newQueue});
+    newQueue.splice(currentPosition + 1 + this.state.qCount, 0, Song);
+    this.setState({queue: newQueue, qCount: this.state.qCount + 1});
   }
 
   addSongToPlaylist(AmpacheSongID, Playlist, cb) {
@@ -416,7 +421,6 @@ export default class App extends React.Component {
 			  {
 				renderIf(!this.state.noCredentials)(
 					this.props.children && React.cloneElement(this.props.children, {
-					  allSongs: this.state.allSongs,
 					  allPlaylists: this.state.allPlaylists,
 					  albumsForHome: this.state.albumsForHome,
 					  allAlbums: this.state.allAlbums,

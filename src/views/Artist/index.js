@@ -9,7 +9,7 @@ export default class ArtistView extends React.Component {
   constructor(props) {
 	super(props);
 	this.state = {
-	  theArtistSongs: null
+	  theArtistSongs: []
 	};
 
 	this.onPlaySong = this.onPlaySong.bind(this);
@@ -33,21 +33,19 @@ export default class ArtistView extends React.Component {
 
   onPlaySong(AmpacheSongId, playingIndex) {
 	if (typeof this.props.onPlaySong === 'function') {
-	  let artistSongs = Array.from(this.state.theArtistSongs, (song) => {
-		return song[1];
-	  });
-	  this.props.onPlaySong(AmpacheSongId, artistSongs, playingIndex);
+	  console.log(playingIndex);
+	  this.props.onPlaySong(AmpacheSongId, this.state.theArtistSongs, playingIndex);
 	}
   }
 
   render() {
-	if(this.state.theArtistSongs == null) {
+	if(this.state.theArtistSongs == null || this.state.theArtistSongs.length == 0) {
       return <LoadingSpinner />
 	}
 
 	let i = 0;
 	let songRows = [];
-	this.state.theArtistSongs.forEach((theSong, albumTrackID) => {
+	this.state.theArtistSongs.map((theSong) => {
 	  songRows.push(<SongRow key={i}
 							 allPlaylists={this.props.allPlaylists} //Needed for context menu
 							 Index={i} Song={theSong}

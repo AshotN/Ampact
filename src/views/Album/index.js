@@ -40,10 +40,7 @@ export default class AlbumView extends React.Component {
 
   onPlaySong(AmpacheSongId, playingIndex) {
 	if (typeof this.props.onPlaySong === 'function') {
-	  let albumSongs = Array.from(this.state.theAlbum.Songs, (song) => {
-		return song[1];
-	  });
-	  this.props.onPlaySong(AmpacheSongId, albumSongs, playingIndex);
+	  this.props.onPlaySong(AmpacheSongId, this.state.theAlbum.Songs, playingIndex);
 	}
   }
 
@@ -54,11 +51,11 @@ export default class AlbumView extends React.Component {
 
 	let i = 0;
 	let songRows = [];
-	this.state.theAlbum.Songs.forEach((theSong, albumTrackID) => {
+	this.state.theAlbum.Songs.forEach((theSong, index) => {
 	  songRows.push(<SongRow key={i}
 							 allPlaylists={this.props.allPlaylists} //Needed for context menu
 							 Index={i} Song={theSong}
-							 albumTrackID={albumTrackID}
+							 albumTrackID={index+1}
 							 playingAmpacheSongId={this.props.playingAmpacheSongId}
 							 loadingAmpacheSongId={this.props.loadingAmpacheSongId}
 							 onPlaySong={this.onPlaySong}

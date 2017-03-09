@@ -10,7 +10,7 @@ export default class PlaylistView extends React.Component {
 
 
 	this.state = {
-	  thePlaylist: null
+	  thePlaylist: []
 	};
 
 	this.addSongToPlaylist = this.addSongToPlaylist.bind(this);
@@ -74,15 +74,12 @@ export default class PlaylistView extends React.Component {
 
   onPlaySong(AmpacheSongId, playingIndex) {
 	if (typeof this.props.onPlaySong === 'function') {
-	  let playlistSongs = Array.from(this.state.thePlaylist.Songs, (song) => {
-		return song[1];
-	  });
-	  this.props.onPlaySong(AmpacheSongId, playlistSongs, playingIndex);
+	  this.props.onPlaySong(AmpacheSongId, this.state.thePlaylist, playingIndex);
 	}
   }
 
   render() {
-	if(this.state.thePlaylist == null) {
+	if(this.state.thePlaylist == null || this.state.thePlaylist.length == 0) {
 	  return <LoadingSpinner />
 	}
 
@@ -118,8 +115,7 @@ export default class PlaylistView extends React.Component {
 };
 // Verify Prop Types
 PlaylistView.propTypes = {
-  allSongs: React.PropTypes.object,
-  allPlaylists: React.PropTypes.object,
+  allPlaylists: React.PropTypes.object.isRequired,
   onPlaySong: React.PropTypes.func,
   playingAmpacheSongId: React.PropTypes.number,
   loadingAmpacheSongId: React.PropTypes.number,

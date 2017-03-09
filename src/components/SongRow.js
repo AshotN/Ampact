@@ -9,6 +9,7 @@ import {Song} from '../logic/Song';
 class SongRow extends React.Component {
   constructor(props) {
 	super(props);
+	console.log(props);
   }
 
   contextMenu(e, Song) {
@@ -88,20 +89,22 @@ class SongRow extends React.Component {
 	let songInfoItems = [];
 
 	if (this.props.format == "playlist") {
-	  songInfoItems.push(
-		  <div className='songWrapper playlistTitleWrapper'>
-			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
-		  </div>,
-		  <div className='songWrapper playlistArtistWrapper'>
-			<Link onClick={(e) => e.stopPropagation()} to={{pathname: `/artist/${this.props.Song.artistID}`}}>
-			  <div className='songArtist'>{this.props.Song.Artist}</div>
-			</Link>
-		  </div>,
-		  <div className='songWrapper playlistAlbumWrapper'>
-			<Link onClick={(e) => e.stopPropagation()} to={{pathname: `/album/${this.props.Song.albumID}`}}>
-			  <div className='songAlbum'>{this.props.Song.Album}</div>
-			</Link>
-		  </div>);
+	  songInfoItems =
+		  <div>
+			<div className='songWrapper playlistTitleWrapper'>
+			  <div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
+			</div>
+			<div className='songWrapper playlistArtistWrapper'>
+			  <Link onClick={(e) => e.stopPropagation()} to={{pathname: `/artist/${this.props.Song.artistID}`}}>
+				<div className='songArtist'>{this.props.Song.Artist}</div>
+			  </Link>
+			</div>
+			<div className='songWrapper playlistAlbumWrapper'>
+			  <Link onClick={(e) => e.stopPropagation()} to={{pathname: `/album/${this.props.Song.albumID}`}}>
+				<div className='songAlbum'>{this.props.Song.Album}</div>
+			  </Link>
+			</div>
+		  </div>;
 	} else if (this.props.format == "album") {
 	  let durationTime = this.props.Song.Duration;
 
@@ -110,19 +113,21 @@ class SongRow extends React.Component {
 	  let durationSecs = ~~(durationTime % 60);
 	  let Duration = durationMins+":"+(durationSecs < 10 ? "0" : "") + durationSecs;
 
-	  songInfoItems.push(
-		  <div className='songWrapper albumTrackWrapper'>
-			<div className='songTrack'>{this.props.albumTrackID}</div>
-		  </div>,
-		  <div className='songWrapper albumTitleWrapper'>
-			<div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
-		  </div>,
-		  <div className='songWrapper albumDurationWrapper'>
-			<div className='songDuration'>{Duration}</div>
-		  </div>);
+	  songInfoItems =
+		  <div>
+			<div className='songWrapper albumTrackWrapper'>
+			  <div className='songTrack'>{this.props.albumTrackID}</div>
+			</div>
+			<div className='songWrapper albumTitleWrapper'>
+			  <div className='songTitle'>{this.props.Song.Title} - {this.props.Song.ID}</div>
+			</div>
+			<div className='songWrapper albumDurationWrapper'>
+			  <div className='songDuration'>{Duration}</div>
+			</div>
+		  </div>;
 	}
 	return (
-		<div onClick={(AmpacheSongId, url, playingIndex) => this.playSong(this.props.Song.ID, this.props.Index)}
+		<div onClick={(AmpacheSongId, playingIndex) => this.playSong(this.props.Song.ID, this.props.Index)}
 			 onContextMenu={(e, Song) => this.contextMenu(e, this.props.Song)} className={songClasses}>
 		  <div className={favoriteIconClasses}
 			   onClick={(e, AmpacheSongId) => this.favSong(e, this.props.Song.ID)}></div>
