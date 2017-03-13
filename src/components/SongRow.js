@@ -112,7 +112,7 @@ class SongRow extends React.Component {
     let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
     let songInfoItems = [];
 
-    if (this.props.format == "playlist" || this.props.format =="artist") {
+    if (this.props.format == "playlist" || this.props.format == "artist" || this.props.format == "search") {
       songInfoItems =
         <div>
           <div className='songWrapper playlistTitleWrapper'>
