@@ -45,11 +45,35 @@ class SongRow extends React.Component {
           that.props.addtoQueue(Song);
         }
       },
-      {
+	  {
+		type: 'separator'
+	  }
+  ];
+	if(this.props.format != 'album') {
+	  template.push({
+		label: 'Go to Album',
+		click () {
+		  that.props.history.push(`/album/${that.props.Song.albumID}`);
+		}
+	  });
+	}
+  if(this.props.format != 'artist') {
+	template.push({
+	  label: 'Go to Artist',
+	  click () {
+		that.props.history.push(`/artist/${that.props.Song.artistID}`);
+	  }
+	});
+  }
+	template.push(
+	  {
+		type: 'separator'
+	  },
+	  {
         label: 'Playlists',
         submenu: addToPlaylistEntry
       }
-    ];
+    );
 
     if(this.props.format == "playlist") {
       template.push(
@@ -88,7 +112,7 @@ class SongRow extends React.Component {
     let favoriteIconClasses = classNames('favSong', {'favorited': this.props.Song.Favorite});
     let songInfoItems = [];
 
-    if (this.props.format == "playlist") {
+    if (this.props.format == "playlist" || this.props.format =="artist") {
       songInfoItems =
         <div>
           <div className='songWrapper playlistTitleWrapper'>

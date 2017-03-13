@@ -261,13 +261,13 @@ export class Ampache {
         }
         else {
 
-          let songs = [];
+          let songs = new Map();
 
           JSONData.forEach(function (entry) {
             let songData = entry.song;
             let song = new Song(songData.id, songData.album.name, songData.album.id, songData.artist.name, songData.artist.id, songData.title, songData.mime, songData.bitrate, songData.url, false, songData.time);
-            // songs.set(songData.playlisttrack, song);
-            songs.push(song);
+            songs.set(songData.playlisttrack, song);
+            //songs.push(song);
           });
           // cb(null, songs);
           return cb(null, songs);

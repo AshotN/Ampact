@@ -58,6 +58,7 @@ export default class AlbumView extends React.Component {
         albumTrackID={index+1}
         playingAmpacheSongId={this.props.playingAmpacheSongId}
         loadingAmpacheSongId={this.props.loadingAmpacheSongId}
+        history={this.props.history}
         onPlaySong={this.onPlaySong}
         addtoQueue={this.props.addtoQueue}
         format="album"

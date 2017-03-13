@@ -8,7 +8,6 @@ export default class PlaylistView extends React.Component {
   constructor(props) {
     super(props);
 
-
     this.state = {
       thePlaylist: []
     };
@@ -74,7 +73,10 @@ export default class PlaylistView extends React.Component {
 
   onPlaySong(AmpacheSongId, playingIndex) {
     if (typeof this.props.onPlaySong === 'function') {
-      this.props.onPlaySong(AmpacheSongId, this.state.thePlaylist, playingIndex);
+	  let playlistSongs = Array.from(this.state.thePlaylist.Songs, (song) => {
+	    return song[1];
+      });
+      this.props.onPlaySong(AmpacheSongId, playlistSongs, playingIndex);
     }
   }
 
@@ -85,13 +87,14 @@ export default class PlaylistView extends React.Component {
 
     let i = 0;
     let songRows = [];
-    this.state.thePlaylist.Songs.forEach((theSong, playlistTrackID) => {
+	this.state.thePlaylist.Songs.forEach((theSong, playlistTrackID) => {
       songRows.push(<SongRow key={i} allPlaylists={this.props.allPlaylists}
         Index={i} Song={theSong}
         playlistTrackID={playlistTrackID}
         playingAmpacheSongId={this.props.playingAmpacheSongId}
         loadingAmpacheSongId={this.props.loadingAmpacheSongId}
         currentPlaylistID={this.props.routeParams.playlistID}
+        history={this.props.history}
         onPlaySong={this.onPlaySong}
         addtoQueue={this.props.addtoQueue}
         format="playlist"

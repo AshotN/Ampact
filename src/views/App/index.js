@@ -276,30 +276,27 @@ export default class App extends React.Component {
 
   stopPlaying(cb) {
     console.log("Stop");
-    if (this.state.isPlaying) {
+    if (this.state.isPlaying || this.state.isPaused) {
       this.state.soundHowl.stop();
-      this.setState({
-        isLoading: false,
-        isPlaying: false,
-        isPaused: false,
-        isStopped: true,
-        soundHowl: null,
-        playingAmpacheSongId: -1,
-        playingHowlID: -1,
-      }, () => {
-        if (typeof cb === 'function') {
-          cb();
-        }
-      });
     }
     else {
       if (this.state.isLoading) {
         Howler.unload(); //TODO: If howler add's a stopAll Loading Global that would be better
       }
-      if (typeof cb === 'function') {
-        cb();
-      }
     }
+	this.setState({
+	  isLoading: false,
+	  isPlaying: false,
+	  isPaused: false,
+	  isStopped: true,
+	  soundHowl: null,
+	  playingAmpacheSongId: -1,
+	  playingHowlID: -1,
+	}, () => {
+	  if (typeof cb === 'function') {
+		cb();
+	  }
+	});
   }
 
   playNextSong() {

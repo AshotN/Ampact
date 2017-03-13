@@ -51,9 +51,10 @@ export default class ArtistView extends React.Component {
         Index={i} Song={theSong}
         playingAmpacheSongId={this.props.playingAmpacheSongId}
         loadingAmpacheSongId={this.props.loadingAmpacheSongId}
+        history={this.props.history}
         onPlaySong={this.onPlaySong}
         addtoQueue={this.props.addtoQueue}
-        format="playlist"
+        format="artist"
         addSongToPlaylist={this.props.onAddSongToPlaylist}/>);
       i++;
     });
