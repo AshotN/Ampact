@@ -1,59 +1,66 @@
 import React from 'react';
 import SongRow from '../../components/SongRow';
 import LoadingSpinner from '../../components/LoadingSpinner';
-// import {Artist} from '../../logic/Artist';
-
-export default class ArtistView extends React.Component {
+export default class SearchView extends React.Component {
 
 	constructor(props) {
 		super(props);
 		this.state = {
-			theArtistSongs: []
+			theSongs: []
 		};
 
 		this.onPlaySong = this.onPlaySong.bind(this);
 	}
 
 	componentDidMount() {
-		this.downloadArtist(this.props.routeParams.artistID, (err, ourArtistSongs) => {
+		this.searchSongs(this.props.routeParams.searchTerm, (err, ourSongs) => {
 			//TODO: HANDLE ERROR
-			this.setState({theArtistSongs: ourArtistSongs});
+			this.setState({theSongs: ourSongs});
 		});
 	}
 
-	downloadArtist(artistID, cb) {
-		this.props.connection.getArtistSongs(artistID, (err, ourArtistSongs) => {
+	componentWillReceiveProps(nextProps) {
+		if(this.props.routeParams.searchTerm != nextProps.routeParams.searchTerm) {
+			this.setState({theSongs: null});
+			this.searchSongs(nextProps.routeParams.searchTerm, (err, ourSongs) => {
+				//TODO: HANDLE ERROR
+				console.log("songs", ourSongs);
+				this.setState({theSongs: ourSongs});
+			});
+		}
+	}
+
+	searchSongs(searchTerm, cb) {
+		this.props.connection.searchSongs(searchTerm, (err, searchResult) => {
 			if(err) {
 				return cb(err, null);
 			}
-			return cb(null, ourArtistSongs);
+			cb(null, searchResult);
 		});
 	}
 
 	onPlaySong(AmpacheSongId, playingIndex) {
 		if(typeof this.props.onPlaySong === 'function') {
-			console.log(playingIndex);
-			this.props.onPlaySong(AmpacheSongId, this.state.theArtistSongs, playingIndex);
+			this.props.onPlaySong(AmpacheSongId, this.state.theSongs, playingIndex);
 		}
 	}
 
 	render() {
-		if(this.state.theArtistSongs == null || this.state.theArtistSongs.length == 0) {
-			return <LoadingSpinner />
+		if(this.state.theSongs === null) {
+			return <LoadingSpinner />;
 		}
 
 		let i = 0;
 		let songRows = [];
-		this.state.theArtistSongs.map((theSong) => {
+		this.state.theSongs.map((theSong) => {
 			songRows.push(<SongRow key={i}
 			                       allPlaylists={this.props.allPlaylists} //Needed for context menu
 			                       Index={i} Song={theSong}
 			                       playingAmpacheSongId={this.props.playingAmpacheSongId}
 			                       loadingAmpacheSongId={this.props.loadingAmpacheSongId}
-			                       history={this.props.history}
 			                       onPlaySong={this.onPlaySong}
 			                       addtoQueue={this.props.addtoQueue}
-			                       format="artist"
+			                       format="search"
 			                       addSongToPlaylist={this.props.onAddSongToPlaylist}/>);
 			i++;
 		});
@@ -71,4 +78,3 @@ export default class ArtistView extends React.Component {
 		);
 	}
 }
-

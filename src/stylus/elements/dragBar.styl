@@ -1,46 +1,45 @@
 .dragBar
-  width: 100%;
-  height: 45px;
-  background-color: #28282a;
-  -webkit-app-region: drag;
+	width: 100%;
+	height: 45px;
+	background-color: #28282a;
+	-webkit-app-region: drag;
 
-  .searchBar
-    -webkit-app-region: no-drag;
-    color: #000;
-    display: inline-block;
-    padding: 7px;
-    height: 10px;
-    background-color: #b9b9b9;
-    border: none;
-    border-radius: 2px;
-    margin: 10px;
-    transition 0.2s padding
-    &::-webkit-input-placeholder
-      color #4A4A4A
-    &:hover, &:focus
-      outline none
-    &:focus
-      padding-right 25px
+	.searchBar
+		-webkit-app-region: no-drag;
+		color: #000;
+		display: inline-block;
+		padding: 7px;
+		height: 10px;
+		background-color: #b9b9b9;
+		border: none;
+		border-radius: 2px;
+		margin: 10px;
+		transition 0.2s padding
+		&::-webkit-input-placeholder
+			color #4A4A4A
+		&:hover, &:focus
+			outline none
+		&:focus
+			padding-right 25px
 
-  .closeApp
-    color: #ccc;
-    font-size: 32px;
-    float: right;
-    padding: 5px;
-    cursor pointer
-    -webkit-app-region: no-drag;
-
+	.closeApp
+		color: #ccc;
+		font-size: 32px;
+		float: right;
+		padding: 5px;
+		cursor pointer
+		-webkit-app-region: no-drag;
 
 .wrapper
-  overflow hidden
+	overflow hidden
 
 ::-webkit-scrollbar
-  height: 12px;
-  width: 12px;
-  background: #000;
+	height: 12px;
+	width: 12px;
+	background: #000;
 
 ::-webkit-scrollbar-thumb
-  background: secondaryColor
+	background: secondaryColor
 
 ::-webkit-scrollbar-corner
-  background: #000;
+	background: #000;
