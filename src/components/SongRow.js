@@ -88,7 +88,7 @@ class SongRow extends React.Component {
 		}
 
 		const menu = Menu.buildFromTemplate(template);
-		menu.popup(remote.getCurrentWindow());
+		menu.popup(remote.getCurrentWindow(), {async: true});
 	}
 
 	playSong(AmpacheSongId, playingIndex) {
